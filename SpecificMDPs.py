@@ -20,7 +20,6 @@ def generate_investment_sim(p_noise = 0, **kwargs):
         mdp = MDPSimulator.MDPSim(P = P, R = R, R_std=R_std)
     return mdp
 
-
 def func1():
     mdp = generate_investment_sim()
     policy = Policies.generate_uniform_policy(mdp.X,mdp.U)
@@ -47,7 +46,7 @@ def generate_random_MDP(X, U, B, R_sparse, std = 0, random_state = np.random.Ran
     if basis is not None:
         basis = random_state.normal(size=(X, basis))
     mdp = MDPSimulator.MDPSim(P = P, R = R, R_std=R_std, basis = basis)
-    return mdp 
+    return mdp
 
 def func2():
     mdp = generate_random_MDP(X=5,U=3,B=2,R_sparse=1)
