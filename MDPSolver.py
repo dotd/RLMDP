@@ -36,7 +36,7 @@ def compute_reward_to_go(trajectory, idx_start, gamma):
 
 def get_J_as_MC_raw(trajectory, gamma, X = None, func = lambda x: x):
     if X is None:
-        X = max(trajectory)+1
+        X = max([x[0] for x in trajectory])+1
     times = np.zeros((X,))
     values = np.zeros((X,))
     for idx in range(len(trajectory)):
@@ -57,7 +57,7 @@ def get_discount_factor_as_filter(gamma, filt_len):
 
 def get_J_as_MC_filter(trajectory, gamma, X=None, filt_len = 40, func = lambda x: x):
     # The trajectory is x,u,r
-    X = max(trajectory)+1 if X is None else X
+    X = np.array([vec[0] for vec in trajectory]).max()+1 if X is None else X
     # get the reward
     r = np.array([vec[2] for vec in trajectory])
     # make the filter

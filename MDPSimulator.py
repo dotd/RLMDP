@@ -36,7 +36,7 @@ class MDPSim:
             u = self.rand.choice(range(self.U), p=policy[x])
             y = self.rand.choice(range(self.X), p=self.P[u,x])
             r = self.R[u, x, y] + self.rand.normal()*self.R_std[u,x,y]
-            trajectory.append([x,u,r])
+            trajectory.append([x,u,r,y])
             x = y
         return trajectory
 
