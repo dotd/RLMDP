@@ -44,7 +44,7 @@ print("J_td={}".format(J_td))
 print("Elapsed since last time: {}".format(time.time() - start))
 print("\n")
 
-if num_samples<=10001:
+if num_samples<=1001:
     start = time.time()
     J_MC = MDPSolver.get_J_as_MC_raw(trajectory, gamma, X=mdp.X)
     print("J_MC={}".format(J_MC))
@@ -105,3 +105,13 @@ J_sim_LSTD = np.dot(phi_class.phi, w_sim)
 print("J_sim_LSTD={}".format(J_sim_LSTD))
 print("Elapsed since last time: {}".format(time.time() - start))
 print("\n")
+
+start = time.time()
+mu_PI_opt, J_collector_PI, Q_PI, iter_counter = MDPSolver.PI(mdp, gamma)
+print("mu_PI_opt=\n{}".format(mu_PI_opt))
+print("J_collector_PI=\n{}".format(J_collector_PI))
+print("Q_PI={}".format(Q_PI))
+print("iter_counter={}".format(iter_counter))
+print("Elapsed since last time: {}".format(time.time() - start))
+print("\n")
+

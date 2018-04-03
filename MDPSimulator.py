@@ -7,7 +7,7 @@ class MDPSim:
     '''
     P, R, R_var are variance classes of sizes U*X*X
     '''
-    def __init__(self, P, R, R_std = 0, random = np.random.RandomState(0), basis = None, info = {}):
+    def __init__(self, P, R, R_std = 0, random = np.random.RandomState(0), basis = None, info = None):
         self.P = P
         self.R = R
         self.R_std = R_std
@@ -58,8 +58,30 @@ class MDPSim:
         lines.append("R=")
         lines.append(Utils.show_3dMat(self.R))
         lines.append("R_std=")
-        lines.append(Utils.show_3dMat(self.R_std))
+        if (self.R_std==0):
+            lines.append("0")
+        else:
+            lines.append(Utils.show_3dMat(self.R_std))
+
+        lines.append(self.show_info())
         return "\n".join(lines)
+
+    def show_info(self):
+        if self.info==None:
+            return "info:empty"
+        lines = []
+        for x in range(self.X):
+            for y in range(self.X):
+                for u in range(self.U):
+                    if self.P[u,x,y] != 0.0:
+                        x_str = self.info["states2coords"][x]
+                        y_str = self.info["states2coords"][y]
+                        u_str = self.info["actions"][u]
+                        r_str = self.R[u, x, y]
+                        lines.append("x,u,y={},{},{};\t{},{},{};\t{}".format(x,u,y,x_str,u_str,y_str,r_str))
+
+        return "\n".join(lines)
+
 
     def get_cur_state(self):
         if self.basis is None:

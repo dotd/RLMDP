@@ -3,6 +3,7 @@ from Utils import *
 import math
 import Policies
 import MDPSimulator
+import collections
 
 def generate_investment_sim(p_noise = 0, **kwargs):
     P = np.array([[[1 - p_noise, p_noise], [1 - p_noise, p_noise]], [[p_noise, 1 - p_noise], [p_noise, 1 - p_noise]]])
@@ -48,6 +49,54 @@ def generate_random_MDP(X, U, B, R_sparse, std = 0, random_state = np.random.Ran
     mdp = MDPSimulator.MDPSim(P = P, R = R, R_std=R_std, basis = basis)
     return mdp
 
-def func2():
+def check_generate_random_MDP():
     mdp = generate_random_MDP(X=5,U=3,B=2,R_sparse=1)
     print(mdp.show())
+
+def generate_clean_2d_maze(x_size=4, y_size = 3, reward_coord = (3,2)):
+    actions = {0:"increase_y", 1:"increase_x", 2:"decrease_y", 3:"decrease_x"}
+    coords2states = {}
+    states2coords = {}
+    map = dict()
+    states_cnt = 0
+    for x in range(x_size):
+        for y in range(y_size):
+            coords2states[(x,y)] = states_cnt
+            states2coords[states_cnt] = (x,y)
+            states_cnt+=1
+
+    X = len(coords2states)
+    U = len(actions)
+
+    P = np.zeros(shape=(U,X,X))
+    r = np.zeros(shape=(U,X,X))
+    for x_origin in range(x_size):
+        for y_origin in range(y_size):
+            for u,u_str in actions.items():
+                x_target = x_origin
+                y_target = y_origin
+                # doing the dynamics
+                if u_str=="increase_y" and y_origin<y_size-1:
+                    y_target = y_origin+1
+                if u_str=="increase_x" and x_origin<x_size-1:
+                    x_target = x_origin+1
+                if u_str=="decrease_y" and y_origin>0:
+                    y_target = y_origin-1
+                if u_str=="decrease_x" and x_origin>0:
+                    x_target = x_origin-1
+
+                state_origin = coords2states[(x_origin,y_origin)]
+                state_target = coords2states[(x_target,y_target)]
+
+                P[u,state_origin,state_target] = 1.0
+                if (x_origin,y_origin)==reward_coord:
+                    r[u,state_origin,state_target] = 1.0
+    mdp = MDPSimulator.MDPSim(P,r,info={"coords2states":coords2states, "states2coords":states2coords, "actions":actions})
+    return mdp
+
+def check_generate_clean_2d_maze():
+    mdp = generate_clean_2d_maze()
+    print(mdp.show())
+
+check_generate_clean_2d_maze()
+

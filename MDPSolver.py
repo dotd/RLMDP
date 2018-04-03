@@ -1,5 +1,5 @@
 import numpy as np
-import MDPSimulator
+import Policies
 import Utils
 
 def get_MRP(mdp, mu):
@@ -136,7 +136,7 @@ def get_policy_from_Q(Q):
     return mu
 
 def PI(mdp, gamma):
-    mu = MDPSimulator.generate_deterministic_policy(mdp.X, mdp.U)
+    mu = Policies.generate_deterministic_policy(mdp.X, mdp.U)
     mu_prev = np.zeros_like(mu)
     iter_counter = 0
     J_collector = []
