@@ -15,6 +15,7 @@ def get_J(P, R, gamma):
     J = np.dot(np.linalg.inv(np.identity(P.shape[0]) - gamma * P), R)
     return J
 
+
 def get_J_iteratively(P, R, gamma, maximal_num_iters=10, maximal_eps=1e-3, norm = lambda x: np.linalg.norm(x)):
     X = P.shape[0]
     J = np.zeros(shape=(X,))
@@ -26,6 +27,7 @@ def get_J_iteratively(P, R, gamma, maximal_num_iters=10, maximal_eps=1e-3, norm 
         iters_counter +=1
     return J, norm(J-J_prev), iters_counter
 
+
 def compute_reward_to_go(trajectory, idx_start, gamma):
     R = 0
     d = 1
@@ -33,6 +35,7 @@ def compute_reward_to_go(trajectory, idx_start, gamma):
         R += trajectory[idx][2] * d
         d *= gamma
     return R
+
 
 def get_J_as_MC_raw(trajectory, gamma, X = None, func = lambda x: x):
     if X is None:

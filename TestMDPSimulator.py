@@ -44,7 +44,7 @@ print("J_td={}".format(J_td))
 print("Elapsed since last time: {}".format(time.time() - start))
 print("\n")
 
-if num_samples<=10001:
+if num_samples <= 1001:
     start = time.time()
     J_MC = MDPSolver.get_J_as_MC_raw(trajectory, gamma, X=mdp.X)
     print("J_MC={}".format(J_MC))
@@ -57,6 +57,7 @@ if num_samples<=10001:
 else:
     print("Skip straight forward MonteCarlo simulation")
 
+
 start = time.time()
 J_MC_filt = MDPSolver.get_J_as_MC_filter(trajectory, gamma, X=mdp.X)
 print("J_MC_filt={}".format(J_MC_filt))
@@ -68,6 +69,7 @@ M2_MC_filt = MDPSolver.get_J_as_MC_filter(trajectory, gamma, X=mdp.X, func=lambd
 print("M2_MC_filt={}".format(M2_MC_filt))
 print("Elapsed since last time: {}".format(time.time() - start))
 print("\n")
+
 
 phi = np.random.normal(size=(mdp.X,mdp.X))
 class PhiClass:
