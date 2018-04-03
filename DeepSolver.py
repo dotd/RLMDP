@@ -33,6 +33,4 @@ class DeepSolver():
         self.learning_rate = 1e-4
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.learning_rate)
 
-
-
 DeepSolver(X=2, gamma=0.5)
