@@ -3,11 +3,9 @@ import torch.nn as nn
 from collections import OrderedDict
 import numpy as np
 
-def deep_simple_solver(mdp):
-    pass
 
-#def get_J_as_deep(trajectory, gamma, X=None):
-#    X = np.array([vec[0] for vec in trajectory]).max()+1 if X is None else X
+def get_batch_from_trajectory(trajectory, batcvh_size):
+    pass
 
 class DeepSolver():
     def __init__(self, X, gamma, layer_sizes=(2, 2, 1), layer_activations=(nn.ReLU, None), input_mode="one_hot"):
@@ -20,6 +18,8 @@ class DeepSolver():
         if self.input_mode=="one_hot":
             embed = nn.Embedding(self.X,self.X)
             embed.weight.data.copy_(torch.from_numpy(np.identity(self.X)))
+            # To make this a constant mapping
+            embed.weight.requires_grad = False
             layers["embedding_static"] = embed
 
         for i in range(len(layer_sizes)-1):
@@ -31,6 +31,17 @@ class DeepSolver():
 
         self.loss_fn = nn.MSELoss(size_average=False)
         self.learning_rate = 1e-4
-        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.learning_rate)
+
+        # filter to remove the parameters that doesn’t require gradients
+        # Here is the embbedding layer
+        if self.input_mode=="one_hot":
+            self.parameters = filter(lambda p: p.requires_grad, self.model.parameters())
+        else:
+            self.parameters = self.model.parameters()
+        self.optimizer = torch.optim.Adam(self.parameters, lr=self.learning_rate)
+
+    def step_batch(self, batch):
+        pass
+
 
 DeepSolver(X=2, gamma=0.5)

@@ -18,7 +18,7 @@ num_samples = 10000
 print("The dynamics of the MDP:")
 print(mdp.show())
 
-# Ge the MRP (Markov Reward Process, i.e., MDP, under a specific policy)
+# Get the MRP (Markov Reward Process, i.e., MDP, under a specific policy)
 P, R, R_std = MDPSolver.get_MRP(mdp, mu)
 
 start = time.time()
@@ -36,7 +36,6 @@ print("\n")
 
 # simulate a trajectory
 trajectory = mdp.simulate(0, mu, num_samples=num_samples)
-
 
 start = time.time()
 J_td = MDPSolver.get_J_as_TD(trajectory=trajectory, gamma=gamma, X=mdp.X, alpha=10)
