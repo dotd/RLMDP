@@ -164,7 +164,7 @@ def check_J_collector_monotone(J_collector, debug_print = False, limit_Js = 10, 
             return False
     return True
 
-def VI(mdp, gamma, limit_loops = 100, theta = 1e-3):
+def VI(mdp, gamma, limit_loops=100, theta=1e-3):
     J = np.zeros(mdp.X)
     iter = 0
     delta = 0
