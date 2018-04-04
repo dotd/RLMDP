@@ -4,6 +4,8 @@ import SpecificMDPs
 import Policies
 import numpy as np
 import time
+from DeepSolver import DeepSolver
+import torch.nn as nn
 
 
 # The MDP itself
@@ -27,3 +29,7 @@ print("J_exact={}".format(J_exact))
 print("Elapsed since last time: {}".format(time.time() - start))
 print("\n")
 
+start = time.time()
+ds = DeepSolver(X=2,gamma=0.5,layer_sizes=(2,2,1), layer_activations=(nn.ReLU,None),input_mode="one_hot")
+ds.add_trajectory(trajectory)
+Jpred = ds.infere()

@@ -2,7 +2,11 @@ import torch
 import torch.nn as nn
 from collections import OrderedDict
 import numpy as np
-
+import ReplayMemory as rm
+from ReplayMemory import Transition
+from torch.autograd import Variable
+import torch.functional as F
+import torch.optim as optim
 
 def get_batch_from_trajectory(trajectory, batcvh_size):
     pass
@@ -12,6 +16,7 @@ class DeepSolver():
         self.X = X
         self.gamma = gamma
         self.input_mode=input_mode
+        self.replay_memory = None
 
         layers = OrderedDict()
 
@@ -39,8 +44,58 @@ class DeepSolver():
         else:
             self.parameters = self.model.parameters()
         self.optimizer = torch.optim.Adam(self.parameters, lr=self.learning_rate)
+        #self.optimizer = optim.RMSprop(self.model.parameters())
 
-    def step_batch(self, batch):
+    def add_trajectory(self, trajectory):
+        # We initialize replay memory
+        self.replay_memory = rm.ReplayMemory(capacity=len(trajectory))
+        for i in range(len(trajectory)):
+            x = trajectory[i][0]
+            u = trajectory[i][1]
+            r = trajectory[i][2]
+            y = trajectory[i][3]
+            self.replay_memory.push(x,u,y,r)
+
+    def step(self):
+        # Get the transitions
+        self.transitions = self.replay_memory.sample(len(trajectory))
+
+        # Transpose the batch (see http://stackoverflow.com/a/19343/3343043 for
+        # detailed explanation).
+        batch = Transition(*zip(*self.transitions))
+
+        # Compute a mask of non-final states and concatenate the batch elements
+        non_final_mask = torch.ByteTensor(tuple(map(lambda s: s is not None, batch.next_state)))
+        non_final_next_states = Variable(torch.cat([s for s in batch.next_state if s is not None]),volatile=True)
+
+        # torch.cat
+        state_batch = Variable(torch.cat(batch.state))
+        #action_batch = Variable(torch.cat(batch.action))
+        reward_batch = Variable(torch.cat(batch.reward))
+        next_state_batch = Variable(torch.cat(batch.next_state))
+
+        # Compute J(s_t)
+        Jt = self.model(state_batch).data
+        Jtp1 = self.model(next_state_batch).data
+        expected_Jtp0 = (Jtp1 * self.gamma) + reward_batch
+        # Compute Huber loss
+        loss = F.smooth_l1_loss(Jt, expected_Jtp0)
+
+        # Optimize the model
+        self.optimizer.zero_grad()
+        loss.backward()
+        for param in self.model.parameters():
+            param.grad.data.clamp_(-1, 1)
+        self.optimizer.step()
+
+    def infere(self):
+        self.pred = np.zeros(shape=(2,1))
+        for x in range(self.X):
+            self.pred[x] = self.model(Variable(np.array([[x]])))
+        return self.pred
+
+    def step_the_batch(self, batch_size):
+        transitions = self.replay_memory.sample(batch_size)
         pass
 
 

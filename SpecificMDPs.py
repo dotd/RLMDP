@@ -98,5 +98,5 @@ def check_generate_clean_2d_maze():
     mdp = generate_clean_2d_maze()
     print(mdp.show())
 
-check_generate_clean_2d_maze()
+#check_generate_clean_2d_maze()
 
