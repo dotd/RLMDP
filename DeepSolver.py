@@ -5,7 +5,7 @@ import numpy as np
 import ReplayMemory as rm
 from ReplayMemory import Transition
 from torch.autograd import Variable
-import torch.functional as F
+import torch.nn.functional as F
 import torch.optim as optim
 
 def get_batch_from_trajectory(trajectory, batcvh_size):
@@ -58,40 +58,52 @@ class DeepSolver():
 
     def step(self):
         # Get the transitions
-        self.transitions = self.replay_memory.sample(len(trajectory))
+        self.transitions = self.replay_memory.sample()
 
         # Transpose the batch (see http://stackoverflow.com/a/19343/3343043 for
         # detailed explanation).
+        '''
         batch = Transition(*zip(*self.transitions))
-
-        # Compute a mask of non-final states and concatenate the batch elements
-        non_final_mask = torch.ByteTensor(tuple(map(lambda s: s is not None, batch.next_state)))
-        non_final_next_states = Variable(torch.cat([s for s in batch.next_state if s is not None]),volatile=True)
+        print(batch.state)
+        print(batch.next_state)
+        print([int(s) for s in batch.next_state])
 
         # torch.cat
-        state_batch = Variable(torch.cat(batch.state))
+        state_batch = Variable(torch.cat([s for s in batch.next_state]))
         #action_batch = Variable(torch.cat(batch.action))
-        reward_batch = Variable(torch.cat(batch.reward))
-        next_state_batch = Variable(torch.cat(batch.next_state))
+        reward_batch = Variable(batch.reward)
+        next_state_batch = Variable(batch.next_state)
+        '''
+
+        batch = Transition(*zip(*self.transitions))
+        print(batch.state)
+        print(batch.next_state)
+        print([int(s) for s in batch.next_state])
+
+        # torch.cat
+        state_batch = Variable(torch.LongTensor([int(round(s)) for s in batch.state]))
+        #action_batch = Variable(torch.cat(batch.action))
+        reward_batch = Variable(torch.Tensor([s for s in batch.reward]))
+        next_state_batch = Variable(torch.LongTensor([int(round(s)) for s in batch.next_state]))
 
         # Compute J(s_t)
-        Jt = self.model(state_batch).data
-        Jtp1 = self.model(next_state_batch).data
+        Jt = self.model(state_batch)
+        Jtp1 = self.model(next_state_batch)
         expected_Jtp0 = (Jtp1 * self.gamma) + reward_batch
         # Compute Huber loss
-        loss = F.smooth_l1_loss(Jt, expected_Jtp0)
+        loss = F.l1_loss(Jt, expected_Jtp0)
 
         # Optimize the model
         self.optimizer.zero_grad()
         loss.backward()
-        for param in self.model.parameters():
+        for param in self.parameters():
+            print(param)
             param.grad.data.clamp_(-1, 1)
         self.optimizer.step()
 
-    def infere(self):
-        self.pred = np.zeros(shape=(2,1))
-        for x in range(self.X):
-            self.pred[x] = self.model(Variable(np.array([[x]])))
+    def infer(self):
+        input = Variable(torch.LongTensor(range(self.X)))
+        self.pred = self.model(input)
         return self.pred
 
     def step_the_batch(self, batch_size):
