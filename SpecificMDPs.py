@@ -7,9 +7,9 @@ import collections
 
 def generate_investment_sim(p_noise = 0, **kwargs):
     P = np.array([[[1 - p_noise, p_noise], [1 - p_noise, p_noise]], [[p_noise, 1 - p_noise], [p_noise, 1 - p_noise]]])
-    R1 = kwargs.get("R1", 2)
+    R_state_1 = kwargs.get("R_state_1", 2)
     R1_std = kwargs.get("R1_std", math.sqrt(2))
-    R1D = np.array([1, R1])
+    R1D = np.array([1, R_state_1])
     R1D_std = np.array([0, R1_std])
     R = OneDVec2ThreeDVec(R1D,U=2)
     R_std = OneDVec2ThreeDVec(R1D_std,U=2)
@@ -53,7 +53,7 @@ def check_generate_random_MDP():
     mdp = generate_random_MDP(X=5,U=3,B=2,R_sparse=1)
     print(mdp.show())
 
-def generate_clean_2d_maze(x_size=4, y_size = 3, reward_coord = (3,2)):
+def generate_clean_2d_maze(x_size=4, y_size = 3, reward_coord = (3,2), start_method="random"):
     actions = {0:"increase_y", 1:"increase_x", 2:"decrease_y", 3:"decrease_x"}
     coords2states = {}
     states2coords = {}
@@ -70,6 +70,7 @@ def generate_clean_2d_maze(x_size=4, y_size = 3, reward_coord = (3,2)):
 
     P = np.zeros(shape=(U,X,X))
     r = np.zeros(shape=(U,X,X))
+    # This loops based on the state and action tells what are the next_state
     for x_origin in range(x_size):
         for y_origin in range(y_size):
             for u,u_str in actions.items():
@@ -91,7 +92,12 @@ def generate_clean_2d_maze(x_size=4, y_size = 3, reward_coord = (3,2)):
                 P[u,state_origin,state_target] = 1.0
                 if (x_origin,y_origin)==reward_coord:
                     r[u,state_origin,state_target] = 1.0
-    mdp = MDPSimulator.MDPSim(P,r,info={"coords2states":coords2states, "states2coords":states2coords, "actions":actions})
+    # If we reached the reward, we randomly go to other places in the grid.
+    for u in range(U):
+        for y in range(X):
+            P[u,coords2states[reward_coord],y] = 1/X
+    r_std = np.zeros_like(r)
+    mdp = MDPSimulator.MDPSim(P,r,r_std,info={"coords2states":coords2states, "states2coords":states2coords, "actions":actions})
     return mdp
 
 def check_generate_clean_2d_maze():

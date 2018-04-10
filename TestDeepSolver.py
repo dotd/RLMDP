@@ -15,7 +15,7 @@ mu = Policies.generate_uniform_policy(mdp.X, mdp.U)
 # discount factor
 gamma = 0.5
 # for the simulator, how many steps.
-num_samples = 10
+num_samples = 10000
 
 # Get the MRP (Markov Reward Process, i.e., MDP, under a specific policy)
 P, R, R_std = MDPSolver.get_MRP(mdp, mu)
@@ -29,14 +29,15 @@ print("J_exact={}".format(J_exact))
 print("Elapsed since last time: {}".format(time.time() - start))
 print("\n")
 
-num_batches = 10
+num_episodes = 1000
 start = time.time()
-ds = DeepSolver(X=2,gamma=0.5,layer_sizes=(2,2,1), layer_activations=(nn.ReLU,None),input_mode="one_hot")
+ds = DeepSolver(X=2,gamma=0.5,layer_sizes=(2,20,1), layer_activations=(nn.Hardtanh,None),input_mode="one_hot")
 ds.add_trajectory(trajectory)
 J_pred = ds.infer()
-print("J_pred={}".format(np.array(J_pred.data).T))
-for i in range(num_batches):
-    ds.step()
+for i in range(num_episodes):
+    loss = ds.step(1000)
     J_pred = ds.infer()
-    print("{} J_pred={}".format(i,np.array(J_pred.data).T))
+    if i%10==0:
+        print("{}\tJ_pred={}\tloss={}".format(i,np.array(J_pred.data).T,loss[0].data[0]))
+
 

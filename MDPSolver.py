@@ -138,12 +138,16 @@ def get_policy_from_Q(Q):
         mu[idx_x, idx_maximal] = 1
     return mu
 
-def PI(mdp, gamma):
-    mu = Policies.generate_deterministic_policy(mdp.X, mdp.U)
-    mu_prev = np.zeros_like(mu)
+def PI(mdp, gamma, mu=None, max_iters=10):
+    if mu is None:
+        mu = Policies.generate_deterministic_policy(mdp.X, mdp.U)
+    mu_prev = mu-1
     iter_counter = 0
     J_collector = []
     while np.array_equal(mu_prev, mu)==False:
+        if iter_counter>=max_iters:
+            print("Reached max_iters")
+            break;
         P, R, R_std = get_MRP(mdp, mu)
         J = get_J(P, R, gamma)
         J_collector.append(J)
