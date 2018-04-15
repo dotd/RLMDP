@@ -50,7 +50,8 @@ class MDPSim:
 
     def step(self,u):
         x = self.cur_state
-        y = self.rand.choice(range(self.X), p=self.P[u, x])
+        vec = np.squeeze(self.P[u, x])
+        y = self.rand.choice(range(self.X), p=vec)
         r = self.R[u, x, y] + self.rand.normal()*self.R_std[u,x,y]
         self.cur_state = y
         if self.basis is None:

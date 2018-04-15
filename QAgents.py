@@ -11,7 +11,7 @@ class SimpleQAgent:
         self.Q = np.ones(shape=(X,U))/(1-gamma)
         self.alpha = alpha
 
-    def choose_action(self, x):
+    def select_action(self, x):
         # Doing the epsilon greedy step
         if self.random.rand()<self.epsilon:
             return self.random.randint(0,self.U)
@@ -33,6 +33,9 @@ class SimpleQAgent:
             maximal_action = self.get_maximal_action(x)
             policy[x][maximal_action] = 1.0
         return policy
+
+    def get_Q(self):
+        return self.Q
 
 
 

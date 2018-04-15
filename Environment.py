@@ -1,3 +1,5 @@
+
+
 class Environment():
     def __init__(self, mdp, agent):
         self.mdp = mdp
@@ -10,7 +12,7 @@ class Environment():
     def play_round(self, num_rounds=None):
         if num_rounds==None:
             state = self.mdp.get_state()
-            action = self.agent.choose_action(state)
+            action = self.agent.select_action(state)
             next_state, reward, _, _ = self.mdp.step(action)
             self.agent.update(state, action, reward, next_state)
             return next_state, reward

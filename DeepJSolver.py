@@ -11,7 +11,7 @@ import torch.optim as optim
 def get_batch_from_trajectory(trajectory, batcvh_size):
     pass
 
-class DeepSolver():
+class DeepJSolver():
     def __init__(self, X, gamma, layer_sizes=(2, 2, 1), layer_activations=(nn.Hardtanh, None), input_mode="one_hot", base = "identity"):
         self.X = X
         self.gamma = gamma

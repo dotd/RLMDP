@@ -4,7 +4,7 @@ import SpecificMDPs
 import Policies
 import numpy as np
 import time
-from DeepSolver import DeepSolver
+from DeepJSolver import DeepJSolver
 import torch.nn as nn
 
 
@@ -31,7 +31,7 @@ print("\n")
 
 num_episodes = 1000
 start = time.time()
-ds = DeepSolver(X=2,gamma=0.5,layer_sizes=(2,20,1), layer_activations=(nn.Hardtanh,None),input_mode="one_hot")
+ds = DeepJSolver(X=2, gamma=0.5, layer_sizes=(2, 20, 1), layer_activations=(nn.Hardtanh, None), input_mode="one_hot")
 ds.add_trajectory(trajectory)
 J_pred = ds.infer()
 for i in range(num_episodes):
