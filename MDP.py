@@ -2,8 +2,7 @@ import numpy as np
 import math
 import Utils
 
-
-class MDPSim:
+class MDP:
     '''
     P, R, R_var are variance classes of sizes U*X*X
     '''

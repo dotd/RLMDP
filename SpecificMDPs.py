@@ -1,9 +1,7 @@
-import numpy as np
 from Utils import *
 import math
 import Policies
-import MDPSimulator
-import collections
+import MDP
 
 def generate_investment_sim(p_noise = 0, **kwargs):
     P = np.array([[[1 - p_noise, p_noise], [1 - p_noise, p_noise]], [[p_noise, 1 - p_noise], [p_noise, 1 - p_noise]]])
@@ -18,7 +16,7 @@ def generate_investment_sim(p_noise = 0, **kwargs):
     if sparse_flag:
         pass
     else:
-        mdp = MDPSimulator.MDPSim(P = P, R = R, R_std=R_std)
+        mdp = MDP.MDP(P = P, R = R, R_std=R_std)
     return mdp
 
 def func1():
@@ -31,22 +29,23 @@ def func1():
     trajectory = mdp.simulate(x=0,policy=policy,num_samples=10)
     print(trajectory)
 
-def generate_random_MDP(X, U, B, R_sparse, std = 0, random_state = np.random.RandomState(0), basis = None):
+def generate_random_MDP(X, U, B, std = 0, random_state = np.random.RandomState(0)):
+    '''
+    :param X: state size
+    :param U: actions size
+    :param B: Branching factor
+    :param std:
+    :param random_state:
+    '''
     P = np.zeros(shape=(U,X,X))
     R = np.zeros(shape=(U,X,X))
     R_std = std*np.ones(shape=(U,X,X))
 
     for u in range(U):
         for x in range(X):
-            P[u, x] = get_random_sparse_vector(X, B, True, "uniform", random_state)
-            R[u, x] = get_random_sparse_vector(X, R_sparse, False, "gaussian", random_state)
-            R[u,x,:]  = R[u,x,0]
-        if u>=1:
-            R[u] = R[0]
+            P[u, x], R[u,x] = get_random_sparse_vector(X, B, random_state)
 
-    if basis is not None:
-        basis = random_state.normal(size=(X, basis))
-    mdp = MDPSimulator.MDPSim(P = P, R = R, R_std=R_std, basis = basis)
+    mdp = MDP.MDP(P = P, R = R, R_std=R_std)
     return mdp
 
 def check_generate_random_MDP():
@@ -97,7 +96,7 @@ def generate_clean_2d_maze(x_size=4, y_size = 3, reward_coord = (3,2), start_met
         for y in range(X):
             P[u,coords2states[reward_coord],y] = 1/X
     r_std = np.zeros_like(r)
-    mdp = MDPSimulator.MDPSim(P,r,r_std,info={"coords2states":coords2states, "states2coords":states2coords, "actions":actions})
+    mdp = MDP.MDP(P, r, r_std, info={"coords2states":coords2states, "states2coords":states2coords, "actions":actions})
     return mdp
 
 def check_generate_clean_2d_maze():

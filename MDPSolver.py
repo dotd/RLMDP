@@ -143,18 +143,20 @@ def PI(mdp, gamma, mu=None, max_iters=10):
         mu = Policies.generate_deterministic_policy(mdp.X, mdp.U)
     mu_prev = mu-1
     iter_counter = 0
-    J_collector = []
+    # We allocate the maximum memory. Eventually we might truncate it.
+    J_collector = np.zeros(shape=(max_iters, mdp.X))
     while np.array_equal(mu_prev, mu)==False:
         if iter_counter>=max_iters:
             print("Reached max_iters")
             break;
         P, R, R_std = get_MRP(mdp, mu)
         J = get_J(P, R, gamma)
-        J_collector.append(J)
+        J_collector[iter_counter,:] = J
         Q = get_Q(mdp, gamma, J)
         mu_prev = mu
         mu = get_policy_from_Q(Q)
         iter_counter +=1
+    J_collector = J_collector[0:iter_counter,:]
     return mu, J_collector, Q, iter_counter
 
 def check_J_collector_monotone(J_collector, debug_print = False, limit_Js = 10, limit_dim = 10  ):

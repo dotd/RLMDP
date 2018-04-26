@@ -15,7 +15,7 @@ class Environment():
             action = self.agent.select_action(state)
             next_state, reward, _, _ = self.mdp.step(action)
             self.agent.update(state, action, reward, next_state)
-            return next_state, reward
+            return state, action, next_state, reward
 
         res = []
         for i in range(num_rounds):

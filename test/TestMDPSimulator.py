@@ -1,4 +1,4 @@
-import MDPSimulator
+import MDP
 import MDPSolver
 import SpecificMDPs
 import Policies
@@ -27,7 +27,7 @@ print("J_exact={}".format(J_exact))
 print("Elapsed since last time: {}".format(time.time() - start))
 print("\n")
 
-R_M2 = MDPSimulator.get_R_M2(P, R, R_std, gamma, J_exact)
+R_M2 = MDP.get_R_M2(P, R, R_std, gamma, J_exact)
 start = time.time()
 M2_exact = MDPSolver.get_J(P, R_M2, gamma**2)
 print("M2_exact={}".format(M2_exact))
@@ -94,7 +94,7 @@ print("Elapsed since last time: {}".format(time.time() - start))
 print("\n")
 
 V_exact_by_M_J = MDPSolver.get_V_by_J_M(J_exact, M2_exact)
-R_V_exact = MDPSimulator.get_R_V(P, R, R_std, gamma, J_exact)
+R_V_exact = MDP.get_R_V(P, R, R_std, gamma, J_exact)
 V_exact_direct = MDPSolver.get_J(P, R_V_exact, gamma**2)
 print("V_exact_by_M_J={}".format(V_exact_by_M_J))
 print("V_exact_direct={}".format(V_exact_direct))

@@ -40,16 +40,21 @@ def show_3dMat(mat, **kwargs):
         lines.append(show_2dMat(mat[u],**kwargs))
     return mat_sep.join(lines)
 
-def get_random_sparse_vector(X, B, to_normalize, type, random_state):
-    vec = np.zeros(shape=(X,))
-    if type=="gaussian":
-        vec[0:B] = random_state.normal(size=(B,))
-    else:
-        vec[0:B] = random_state.uniform(low=0, high=1.0, size=(B,))
+def get_random_sparse_vector(X, B, random_state):
+    # initialize the size
+    P_vec = np.zeros(shape=(X,))
+    # put in the first places 0:B all the random variables.
+    P_vec[0:B] = random_state.uniform(low=0, high=1.0, size=(B,))
 
-    if to_normalize:
-        sum_vec = np.sum(vec[0:B])
-        vec[0:B] = vec[0:B] / sum_vec
+    # initialize the size
+    R_vec = np.zeros(shape=(X,))
+    # put in the first places 0:B all the random variables.
+    R_vec[0:B] = random_state.normal(size=(B,))
 
-    vec = random_state.permutation(vec)
-    return vec
+    # normalize
+    P_vec[0:B] = P_vec[0:B] / np.sum(P_vec[0:B])
+    # permute both P_vec and R_vec together.
+    idx = random_state.permutation([x for x in range(X)])
+    P_vec = P_vec[idx]
+    R_vec = R_vec[idx]
+    return P_vec, R_vec
