@@ -36,6 +36,8 @@ print("\n")
 
 # simulate a trajectory
 trajectory = mdp.simulate(0, mu, num_samples=num_samples)
+x = [s[0] for s in trajectory]
+r = [s[2] for s in trajectory]
 
 start = time.time()
 J_td = MDPSolver.get_J_as_TD(trajectory=trajectory, gamma=gamma, X=mdp.X, alpha=10)
@@ -69,6 +71,11 @@ print("M2_MC_filt={}".format(M2_MC_filt))
 print("Elapsed since last time: {}".format(time.time() - start))
 print("\n")
 
+start = time.time()
+ABS_MC_filt = MDPSolver.get_J_as_MC_filter(trajectory, gamma, X=mdp.X, func=lambda x:abs(x))
+print("ABS_MC_filt={}".format(ABS_MC_filt))
+print("Elapsed since last time: {}".format(time.time() - start))
+print("\n")
 
 phi = np.random.normal(size=(mdp.X,mdp.X))
 class PhiClass:
@@ -96,8 +103,13 @@ print("\n")
 V_exact_by_M_J = MDPSolver.get_V_by_J_M(J_exact, M2_exact)
 R_V_exact = MDP.get_R_V(P, R, R_std, gamma, J_exact)
 V_exact_direct = MDPSolver.get_J(P, R_V_exact, gamma**2)
+
+filter = MDPSolver.get_discount_factor_as_filter(gamma, filt_len = 40)
+V_sample = MDPSolver.get_B_moments_by_filter(mdp.X, x, r, filter, moment_func = lambda x: x*x, reward_func = lambda x: x)
+
 print("V_exact_by_M_J={}".format(V_exact_by_M_J))
 print("V_exact_direct={}".format(V_exact_direct))
+print("V_sample={}".format(V_sample))
 print("\n")
 
 start = time.time()

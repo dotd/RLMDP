@@ -1,6 +1,7 @@
 import numpy as np
 import Policies
 import Utils
+from collections import Counter
 
 def get_MRP(mdp, mu):
     P = np.zeros((mdp.X,mdp.X))
@@ -55,6 +56,7 @@ def get_discount_factor_as_filter(gamma, filt_len):
     filt[0] = 1
     for k in range(1,filt_len):
         filt[k] = filt[k-1]*gamma
+    # We need to flip the filter since it is used in convolution
     filt = np.flip(filt,0)
     return filt
 
@@ -65,6 +67,8 @@ def get_J_as_MC_filter(trajectory, gamma, X=None, filt_len = 40, func = lambda x
     r = np.array([vec[2] for vec in trajectory])
     # make the filter
     filt = get_discount_factor_as_filter(gamma, filt_len)
+
+    # Doing the main thing: convolve.
     res = np.convolve(r,filt)
     start_idx = filt_len-1 # 39 is the first index, meaning we removed 39 indices
     end_idx = start_idx + r.shape[0]
@@ -79,6 +83,37 @@ def get_J_as_MC_filter(trajectory, gamma, X=None, filt_len = 40, func = lambda x
         values[x] += func(res[k])
     J = values/times
     return J
+
+def get_B_moments_by_filter(X, x_traj, r_traj, filter, moment_func = lambda x: x, reward_func = lambda x: x):
+    filt_len = filter.shape[0] if type(filter) is np.ndarray else len(filter)
+    r_len = r_traj.shape[0] if type(r_traj) is np.ndarray else len(r_traj)
+    # Doing the convolution
+    filtered = np.convolve(r_traj, filter)
+    start_idx = filt_len-1 # if the filter length is 40, 39 is the first index, meaning we removed 39 indices
+    filtered = filtered[start_idx:]
+
+    # Do the stats for computing all states J
+    times = hist_list(x_traj, X)
+    # B is samples by each state
+    B = [[] for x in range(X)]
+    for idx in range(len(x_traj)):
+        x_state = x_traj[idx]
+        B[x_state].append(filtered[idx])
+
+    J = [np.mean(samples) for samples in B]
+    # S is the desired result: the computation of the desired moment for each state
+    S = np.zeros(shape=(X,))
+    for k in range(X):
+        S[k] = np.mean([moment_func(s-J[k]) for s in B[k]])
+
+    return S
+
+def hist_list(lst, X):
+    z = Counter(lst)
+    hist = [0] * X
+    for key, val in z.items():
+        hist[key]=val
+    return hist
 
 def get_J_as_TD(trajectory, gamma, X, alpha):
     '''

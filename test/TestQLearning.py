@@ -32,7 +32,7 @@ for p in range(100):
     bs.add(q_agent.Q, q_agent.epsilon, q_agent.lr, delQ, del_mu)
     env.play_round(100)
 
-plt.figure(2)   
+plt.figure(2)
 plt.subplot(211)
 plt.plot(bs.get().delQ)
 plt.subplot(212)
