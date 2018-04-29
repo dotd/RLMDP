@@ -8,7 +8,7 @@ from Filters.OnlineUtils import ComputeBasicStats
 
 
 # The MDP itself
-mdp = SpecificMDPs.generate_investment_sim()
+mdp = SpecificMDPs.generate_investment_sim(R1_std=0)
 # The policy
 mu = Policies.generate_uniform_policy(mdp.X, mdp.U)
 # discount factor
@@ -102,18 +102,33 @@ print("Elapsed since last time: {}".format(time.time() - start))
 print("\n")
 
 V_exact_by_M_J = MDPSolver.get_V_by_J_M(J_exact, M2_exact)
-R_V_exact = MDP.get_R_V(P, R, R_std, gamma, J_exact)
+R_V_exact = MDP.get_R_V(P, R, R_std, gamma, J_exact, moment_func=lambda x: x*x)
 V_exact_direct = MDPSolver.get_J(P, R_V_exact, gamma**2)
 
 filter = MDPSolver.get_discount_factor_as_filter(gamma, filt_len = 40)
 V_sample = MDPSolver.get_B_moments_by_filter(mdp.X, x, r, filter, moment_func = lambda x: x*x, reward_func = lambda x: x)
-cbs = ComputeBasicStats(X=mdp.X, filter=filter, moments_funcs=[lambda x: x*x])
+special_func = lambda x: abs(x) ** 3
+cbs = ComputeBasicStats(X=mdp.X, filter=filter, moments_funcs=[lambda x: x*x, special_func])
 cbs.add_vecs(x,r)
 
 print("V_exact_by_M_J={}".format(V_exact_by_M_J))
 print("V_exact_direct={}".format(V_exact_direct))
 print("V_sample={}".format(V_sample))
-print("V_online=\n{}".format(cbs.get()))
+result_cbs = cbs.get()
+print("V_online={}".format([result_cbs[0][1], result_cbs[1][1]]))
+print("\n")
+print("Comparing the J for the online:")
+print("J_exact={}".format(J_exact))
+print("J_online={}".format([result_cbs[0][0], result_cbs[1][0]]))
+print("\n")
+print("doing experiment with L1 moment")
+R_S1_exact = MDP.get_R_V(P, R, R_std, gamma, J_exact, moment_func=special_func)
+S1_exact_direct = MDPSolver.get_J(P, R_S1_exact, special_func(gamma))
+print("S1_exact_direct={}".format(S1_exact_direct))
+# getting the result from cbs which is simulator direct
+print("S1_online={}".format([result_cbs[0][2], result_cbs[1][2]]))
+
+
 print("\n")
 
 start = time.time()

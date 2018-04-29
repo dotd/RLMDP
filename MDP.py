@@ -110,9 +110,9 @@ def get_R_M2(P, R, R_std, gamma, J):
     R_M2 = R*R + R_std * R_std + 2* gamma * R * (np.dot(P,J))
     return R_M2
 
-def get_R_V(P, R, R_std, gamma, J):
-    Jy = np.dot(P,J)
-    R_V = gamma*gamma * ( np.dot(P,J*J) - Jy * Jy) + R_std*R_std
+def get_R_V(P, R, R_std, gamma, J, moment_func):
+    Jy =  np.dot(P,J)
+    R_V = moment_func(gamma) *  np.dot(P,moment_func(J - Jy ))  #+ moment_func(R_std)
     return R_V
 
 
