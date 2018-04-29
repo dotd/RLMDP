@@ -58,3 +58,6 @@ def get_random_sparse_vector(X, B, random_state):
     P_vec = P_vec[idx]
     R_vec = R_vec[idx]
     return P_vec, R_vec
+
+def show_numpy_vector_nicely(vec, format = "{:8.4f}", separator = " ",):
+    return separator.join([format.format(x) for x in vec])

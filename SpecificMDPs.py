@@ -3,6 +3,8 @@ import math
 import Policies
 import MDP
 
+DEPEND_ONLY_ON_START_STATE = "depend_only_on_start_state"
+
 def generate_investment_sim(p_noise = 0, **kwargs):
     P = np.array([[[1 - p_noise, p_noise], [1 - p_noise, p_noise]], [[p_noise, 1 - p_noise], [p_noise, 1 - p_noise]]])
     R_state_1 = kwargs.get("R_state_1", 2)
@@ -29,7 +31,7 @@ def func1():
     trajectory = mdp.simulate(x=0,policy=policy,num_samples=10)
     print(trajectory)
 
-def generate_random_MDP(X, U, B, std = 0, random_state = np.random.RandomState(0)):
+def generate_random_MDP(X, U, B, std = 0, random_state = np.random.RandomState(0), R_mode=DEPEND_ONLY_ON_START_STATE):
     '''
     :param X: state size
     :param U: actions size
@@ -41,9 +43,12 @@ def generate_random_MDP(X, U, B, std = 0, random_state = np.random.RandomState(0
     R = np.zeros(shape=(U,X,X))
     R_std = std*np.ones(shape=(U,X,X))
 
-    for u in range(U):
-        for x in range(X):
+    for x in range(X):
+        for u in range(U):
             P[u, x], R[u,x] = get_random_sparse_vector(X, B, random_state)
+        if R_mode==DEPEND_ONLY_ON_START_STATE:
+            R[0, x, :] = R[0,x,0]
+            R[u,x,:] = R[0,x,0]
 
     mdp = MDP.MDP(P = P, R = R, R_std=R_std)
     return mdp
