@@ -4,6 +4,7 @@ import SpecificMDPs
 import Policies
 import numpy as np
 import time
+from Filters.OnlineUtils import ComputeBasicStats
 
 
 # The MDP itself
@@ -106,10 +107,13 @@ V_exact_direct = MDPSolver.get_J(P, R_V_exact, gamma**2)
 
 filter = MDPSolver.get_discount_factor_as_filter(gamma, filt_len = 40)
 V_sample = MDPSolver.get_B_moments_by_filter(mdp.X, x, r, filter, moment_func = lambda x: x*x, reward_func = lambda x: x)
+cbs = ComputeBasicStats(X=mdp.X, filter=filter, moments_funcs=[lambda x: x*x])
+cbs.add_vecs(x,r)
 
 print("V_exact_by_M_J={}".format(V_exact_by_M_J))
 print("V_exact_direct={}".format(V_exact_direct))
 print("V_sample={}".format(V_sample))
+print("V_online=\n{}".format(cbs.get()))
 print("\n")
 
 start = time.time()

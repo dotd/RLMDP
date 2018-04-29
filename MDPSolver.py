@@ -52,12 +52,11 @@ def get_J_as_MC_raw(trajectory, gamma, X = None, func = lambda x: x):
     return J
 
 def get_discount_factor_as_filter(gamma, filt_len):
+    # this function doesn't flit the filter
     filt = np.zeros((filt_len,))
     filt[0] = 1
     for k in range(1,filt_len):
         filt[k] = filt[k-1]*gamma
-    # We need to flip the filter since it is used in convolution
-    filt = np.flip(filt,0)
     return filt
 
 def get_J_as_MC_filter(trajectory, gamma, X=None, filt_len = 40, func = lambda x: x):
@@ -67,6 +66,7 @@ def get_J_as_MC_filter(trajectory, gamma, X=None, filt_len = 40, func = lambda x
     r = np.array([vec[2] for vec in trajectory])
     # make the filter
     filt = get_discount_factor_as_filter(gamma, filt_len)
+    filt = filt[::-1]
 
     # Doing the main thing: convolve.
     res = np.convolve(r,filt)
@@ -84,11 +84,12 @@ def get_J_as_MC_filter(trajectory, gamma, X=None, filt_len = 40, func = lambda x
     J = values/times
     return J
 
-def get_B_moments_by_filter(X, x_traj, r_traj, filter, moment_func = lambda x: x, reward_func = lambda x: x):
-    filt_len = filter.shape[0] if type(filter) is np.ndarray else len(filter)
+def get_B_moments_by_filter(X, x_traj, r_traj, filter_orig, moment_func = lambda x: x, reward_func = lambda x: x):
+    filt_len = filter.shape[0] if type(filter) is np.ndarray else len(filter_orig)
     r_len = r_traj.shape[0] if type(r_traj) is np.ndarray else len(r_traj)
     # Doing the convolution
-    filtered = np.convolve(r_traj, filter)
+    filter_flip = filter_orig[::-1]
+    filtered = np.convolve(r_traj, filter_flip)
     start_idx = filt_len-1 # if the filter length is 40, 39 is the first index, meaning we removed 39 indices
     filtered = filtered[start_idx:]
 
