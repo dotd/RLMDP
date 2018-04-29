@@ -10,11 +10,11 @@ import Utils
 # The MDP itself
 
 #mdp = SpecificMDPs.generate_investment_sim(R1_std=0)
-mdp = SpecificMDPs.generate_random_MDP(X=4, U=2, B=3, std = 0, random_state = np.random.RandomState(0))
+mdp = SpecificMDPs.generate_random_MDP(X=7, U=2, B=6, std = 0, random_state = np.random.RandomState(3))
 # The policy
 mu = Policies.generate_uniform_policy(mdp.X, mdp.U)
 # discount factor
-gamma = 0.5
+gamma = 0.6
 # for the simulator, how many steps.
 num_samples = 100000
 # Print the DMP to the console
@@ -23,6 +23,7 @@ print(mdp.show())
 
 # Get the MRP (Markov Reward Process, i.e., MDP, under a specific policy)
 P, R, R_std = MDPSolver.get_MRP(mdp, mu)
+print("R (mrp)={}".format(Utils.show_numpy_vector_nicely(R)))
 
 start = time.time()
 J_exact = MDPSolver.get_J(P, R, gamma)
@@ -110,8 +111,8 @@ V_exact_direct = MDPSolver.get_J(P, R_V_exact, gamma**2)
 
 filter = MDPSolver.get_discount_factor_as_filter(gamma, filt_len = 40)
 V_sample = MDPSolver.get_B_moments_by_filter(mdp.X, x, r, filter, moment_func = lambda x: x*x, reward_func = lambda x: x)
-special_func = lambda x: abs(x) ** 3
-cbs = ComputeBasicStats(X=mdp.X, filter=filter, moments_funcs=[lambda x: x*x])
+special_func = lambda x: abs(x) ** 1
+cbs = ComputeBasicStats(X=mdp.X, filter=filter, moments_funcs=[lambda x: x*x, special_func])
 cbs.add_vecs(x,r)
 
 print("V_exact_by_M_J={}".format(Utils.show_numpy_vector_nicely(V_exact_by_M_J)))
@@ -123,13 +124,14 @@ print("\n")
 print("Comparing the J for the online:")
 print("J_exact={}".format(Utils.show_numpy_vector_nicely(J_exact)))
 print("J_online={}".format(Utils.show_numpy_vector_nicely([result_cbs[x][0] for x in range(mdp.X)])))
+print("J_MC_filt={}".format(Utils.show_numpy_vector_nicely(J_MC_filt)))
 print("\n")
 print("doing experiment with L1 moment")
 R_S1_exact = MDP.get_R_V(P, R, R_std, gamma, J_exact, moment_func=special_func)
 S1_exact_direct = MDPSolver.get_J(P, R_S1_exact, special_func(gamma))
 print("S1_exact_direct={}".format(Utils.show_numpy_vector_nicely(S1_exact_direct)))
 # getting the result from cbs which is simulator direct
-print("S_online={}".format(Utils.show_numpy_vector_nicely([result_cbs[x][1] for x in range(mdp.X)])))
+print("S_online={}".format(Utils.show_numpy_vector_nicely([result_cbs[x][2] for x in range(mdp.X)])))
 
 print("\n")
 

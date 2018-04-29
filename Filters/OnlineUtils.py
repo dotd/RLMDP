@@ -1,6 +1,7 @@
 
 from collections import deque
 import numpy as np
+from math import sqrt
 
 class OnlineFilter():
     def __init__(self, filter):
@@ -20,7 +21,8 @@ class OnlineFilter():
         return res
 
 class Stats:
-    def __init__(self, moments_funcs):
+    def __init__(self, moments_funcs, id):
+        self.id = id
         self.times = 0
         self.mean = None
         self.moments_funcs = moments_funcs
@@ -48,7 +50,7 @@ class ComputeBasicStats():
         self.filter = filter
         self.onlineFilter = OnlineFilter(filter)
         self.moments_funcs = moments_funcs
-        self.stats = [Stats(moments_funcs) for x in range(self.X)]
+        self.stats = [Stats(moments_funcs,x) for x in range(self.X)]
 
     def add(self, x, r):
         J = self.onlineFilter.add(r)
