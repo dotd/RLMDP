@@ -59,7 +59,7 @@ def get_discount_factor_as_filter(gamma, filt_len):
         filt[k] = filt[k-1]*gamma
     return filt
 
-def get_J_as_MC_filter(trajectory, gamma, X=None, filt_len = 40, func = lambda x: x):
+def get_J_as_MC_filter(trajectory, gamma, X=None, filt_len = 40, func = lambda x: x, info=False):
     # The trajectory is x,u,r
     X = np.array([vec[0] for vec in trajectory]).max()+1 if X is None else X
     # get the reward
@@ -67,9 +67,12 @@ def get_J_as_MC_filter(trajectory, gamma, X=None, filt_len = 40, func = lambda x
     # make the filter
     filt = get_discount_factor_as_filter(gamma, filt_len)
     filt = filt[::-1]
+    #print(filt)
+    #print(r)
 
     # Doing the main thing: convolve.
     res = np.convolve(r,filt)
+    #print(res)
     start_idx = filt_len-1 # 39 is the first index, meaning we removed 39 indices
     end_idx = start_idx + r.shape[0]
     res = res[start_idx:end_idx]
@@ -82,7 +85,10 @@ def get_J_as_MC_filter(trajectory, gamma, X=None, filt_len = 40, func = lambda x
         times[x] +=1
         values[x] += func(res[k])
     J = values/times
-    return J
+    if info==False:
+        return J
+    else:
+        return J, res, values, times
 
 def get_B_moments_by_filter(X, x_traj, r_traj, filter_orig, moment_func = lambda x: x, reward_func = lambda x: x):
     filt_len = filter.shape[0] if type(filter) is np.ndarray else len(filter_orig)

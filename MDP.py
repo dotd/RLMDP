@@ -111,12 +111,26 @@ def get_R_M2(P, R, R_std, gamma, J):
     return R_M2
 
 def get_R_V(P, R, R_std, gamma, J, moment_func):
-    Jy =  np.dot(P,J)
-    R_V = moment_func(gamma) *  np.dot(P,moment_func(J - Jy ))  #+ moment_func(R_std)
+    #Jy =  np.dot(P,J)
+    #R_V = np.dot(P,moment_func(J - Jy ))  #+ moment_func(R_std)
+    R_V = np.dot(P,moment_func(R + np.dot(P,J))) - moment_func(J)
     return R_V
 
+def get_R_as_V_minus(P, R, gamma, J, moment_func = lambda x:x*x):
+    MT1 = np.dot(P, moment_func(J))
+    MT2 = moment_func(np.dot(P,J))
+    return moment_func(gamma) * (MT1-MT2)
 
+def get_R_as_V_def(P, R, gamma, J, moment_func = lambda x:x*x):
+    return moment_func(gamma) * np.dot(P, moment_func(J - np.dot(P, J)))
 
+def get_R_as_V_detailed(P, R, gamma, J, moment_func = lambda x:x*x):
+    T1 = np.dot(P, moment_func(J))
+    T2 = -2*np.dot(P,  J ) * np.dot(P, J)
+    T3 = np.dot(P, np.dot(P, J)*np.dot(P, J))
+    T3b = np.dot(P, J)*np.dot(P, J)
+    return moment_func(gamma) * np.dot(P, moment_func(J - np.dot(P, J)))
 
-
-
+def compute_L1_R(P, R, gamma, J):
+    PJ =np.dot(P,J)
+    return abs(PJ) + np.sign(PJ) * (J-PJ)

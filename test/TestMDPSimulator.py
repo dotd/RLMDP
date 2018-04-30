@@ -10,11 +10,11 @@ import Utils
 # The MDP itself
 
 #mdp = SpecificMDPs.generate_investment_sim(R1_std=0)
-mdp = SpecificMDPs.generate_random_MDP(X=7, U=2, B=6, std = 0, random_state = np.random.RandomState(3))
+mdp = SpecificMDPs.generate_random_MDP(X=3, U=2, B=3, std = 0, random_state = np.random.RandomState(3))
 # The policy
 mu = Policies.generate_uniform_policy(mdp.X, mdp.U)
 # discount factor
-gamma = 0.6
+gamma = 0.3
 # for the simulator, how many steps.
 num_samples = 100000
 # Print the DMP to the console
@@ -106,8 +106,17 @@ print("\n")
 
 V_exact_by_M_J = MDPSolver.get_V_by_J_M(J_exact, M2_exact)
 
-R_V_exact = MDP.get_R_V(P, R, R_std, gamma, J_exact, moment_func=lambda x: x*x)
+#R_V_exact = MDP.get_R_V(P, R, R_std, gamma, J_exact, moment_func=lambda x: x*x)
+R_V_exact = MDP.get_R_as_V_minus(P, R, gamma, J_exact)
+R_V_exact_def = MDP.get_R_as_V_def(P, R, gamma, J_exact)
+print("R_V_exact={}".format(Utils.show_numpy_vector_nicely(R_V_exact)))
+print("R_V_exact_def={}".format(Utils.show_numpy_vector_nicely(R_V_exact_def)))
 V_exact_direct = MDPSolver.get_J(P, R_V_exact, gamma**2)
+
+R_L1_exact = MDP.compute_L1_R(P,R,gamma,J_exact)
+JL1_exact_direct = MDPSolver.get_J(P, R_L1_exact, gamma)
+
+
 
 filter = MDPSolver.get_discount_factor_as_filter(gamma, filt_len = 40)
 V_sample = MDPSolver.get_B_moments_by_filter(mdp.X, x, r, filter, moment_func = lambda x: x*x, reward_func = lambda x: x)
@@ -128,10 +137,13 @@ print("J_MC_filt={}".format(Utils.show_numpy_vector_nicely(J_MC_filt)))
 print("\n")
 print("doing experiment with L1 moment")
 R_S1_exact = MDP.get_R_V(P, R, R_std, gamma, J_exact, moment_func=special_func)
-S1_exact_direct = MDPSolver.get_J(P, R_S1_exact, special_func(gamma))
+S1_exact_direct = MDPSolver.get_J(P, R_S1_exact, gamma)
 print("S1_exact_direct={}".format(Utils.show_numpy_vector_nicely(S1_exact_direct)))
 # getting the result from cbs which is simulator direct
 print("S_online={}".format(Utils.show_numpy_vector_nicely([result_cbs[x][2] for x in range(mdp.X)])))
+print("L1_exact={}".format(Utils.show_numpy_vector_nicely(JL1_exact_direct)))
+print("R_L1_exact={}".format(Utils.show_numpy_vector_nicely(R_L1_exact)))
+R_L1_exact
 
 print("\n")
 

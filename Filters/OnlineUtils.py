@@ -37,6 +37,7 @@ class Stats:
         else:
             self.times +=1
             alpha = 1/self.times
+            #alpha = 0.1
             self.mean = (1-alpha) * self.mean + alpha * new_value
             for idx, func in enumerate(self.moments_funcs):
                 self.values[idx] = (1-alpha) * self.values[idx] + alpha * func(new_value - self.mean)
@@ -47,13 +48,15 @@ class Stats:
 class ComputeBasicStats():
     def __init__(self, X, filter, moments_funcs):
         self.X = X
-        self.filter = filter
+        self.filter = filter[::-1]
         self.onlineFilter = OnlineFilter(filter)
         self.moments_funcs = moments_funcs
         self.stats = [Stats(moments_funcs,x) for x in range(self.X)]
+        self.acum_j = []
 
     def add(self, x, r):
         J = self.onlineFilter.add(r)
+        self.acum_j.append(J)
         self.stats[x].add(J)
 
     def add_vecs(self, x, r):
@@ -69,18 +72,17 @@ class ComputeBasicStats():
 
 def OnlineFilterTest():
     filter = [1,0.5,0]
-    signal = [0,1,2,3,4,5, 6]
+    reward = [0,1,2,3,4,5,6]
+    state = [0,1,0,1,0,1,0]
     of = OnlineFilter(filter)
-    for i in range(len(signal)):
-        res = of.add(signal[i])
-        print("i={}, sample={}, filtered={}".format(i, signal[i], res))
+    for i in range(len(reward)):
+        res = of.add(reward[i])
+        print("i={}, sample={}, filtered={}".format(i, reward[i], res))
 
-    x = [ x % 3 for x in range(0,20)]
-    r = [ (x % 5)*0.1 for x in range(0,20)]
-    cbs = ComputeBasicStats(X=3, filter=filter, moments_funcs= [lambda x: x * x, lambda x: abs(x)])
-    for idx in range(len(x)):
-        cbs.add(x[idx], r[idx])
-        print("i={}, x={}, r={}, filtered=\n{}".format(idx, x[idx], r[idx], cbs.get()))
+    cbs = ComputeBasicStats(X=2, filter=filter, moments_funcs= [lambda x: x * x, lambda x: abs(x)])
+    for idx in range(len(state)):
+        cbs.add(state[idx], reward[idx])
+        print("i={}, x={}, r={}, filtered=\n{}".format(idx, state[idx], reward[idx], cbs.get()))
 
 
 
