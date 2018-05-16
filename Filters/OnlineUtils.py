@@ -99,7 +99,7 @@ low indices correspond to the past
 '''
 
 class OnlineFilter2():
-    def __init__(self, filter):
+    def __init__(self, filter, sampler_len = 1):
         # First we flip the filter
         self.filter = filter
 
@@ -112,7 +112,7 @@ class OnlineFilter2():
         self.deque_result = deque(maxlen=self.len)
         self.deque_time = deque(maxlen=self.len)
 
-        # fillup with zeros
+        # fill-up with zeros
         for i in range(self.len):
             self.deque_reward.append(0)
             self.deque_state.append(None)
@@ -120,6 +120,10 @@ class OnlineFilter2():
             self.deque_time.append(None)
 
         self.samples_counter = 0
+
+        # Sampler
+        self.sampler = {}
+        self.sampler_len = sampler_len
 
     def add(self, reward, state):
         self.deque_reward.append(reward)
@@ -129,6 +133,12 @@ class OnlineFilter2():
         self.deque_time.append(self.samples_counter)
         self.samples_counter +=1
         current_result = self.get()
+        if current_result is not None:
+            state = current_result[2]
+            sample = current_result[0]
+            if state not in self.sampler:
+                self.sampler[state] = deque(maxlen=self.sampler_len)
+            self.sampler[state].append(sample)
         return current_result
 
     def get(self):
@@ -143,9 +153,10 @@ class OnlineFilter2():
 def OnlineFilterTest2():
 
     filter = [1,0.5,0]
-    reward = [10,20,30,40,50,60,70]
-    state = [0,1,2,3,2,1,0]
-    of = OnlineFilter2(filter)
+    reward = [10,20,30,40,50,60,70,80,90,100,110]
+    state = [0,1,2,3,2,1,0,0,1,2,3]
+    state = [(s,s) for s in state]
+    of = OnlineFilter2(filter, sampler_len=4)
     print("Before: deque_reward={}".format(of.deque_reward))
     print("Before: deque_state ={}".format(of.deque_state))
     print("Before: deque_result={}".format(of.deque_result))
@@ -158,6 +169,9 @@ def OnlineFilterTest2():
         print("{}: deque_time  ={}".format(i, list(of.deque_time)))
         print("{}: deque_result={}".format(i, list(of.deque_result)))
         print("\n")
+
+    print("\n".join([str(key) + "\t" + str(value) for key,value in of.sampler.items()]))
+
 
 
 OnlineFilterTest2()

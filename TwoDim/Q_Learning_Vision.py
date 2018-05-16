@@ -20,10 +20,23 @@ from collections import  deque
 
 ########### ENVIRONMENT #################
 
-sizes = (20, 12); lr = 0.0005; num_episodes = 1000; noise = 0.0; BATCH_SIZE = 200; GAMMA = 0.1;
+# Working well
+#sizes = (5, 3); lr = 0.0001; num_episodes = 5000; noise = 0.0; BATCH_SIZE = 10; GAMMA = 0.6; optimizer = optim.Adam(policy_net.parameters(), lr = lr)
+#sizes = (20, 19); lr = 0.005; num_episodes = 5000; noise = 0.0; BATCH_SIZE = 30; GAMMA = 0.6; optimizer = optim.Adam(policy_net.parameters(), lr = lr)
+#sizes = (20, 19); lr = 0.004; num_episodes = 5000; noise = 0.0; BATCH_SIZE = 30; GAMMA = 0.6; optimizer = optim.Adam(policy_net.parameters(), lr = lr)
+# Stable and big enough...
+sizes = (20, 19); lr = 0.003; num_episodes = 5000; noise = 0.0; BATCH_SIZE = 30; GAMMA = 0.6;
 
-rewards = {(sizes[0]-1, sizes[1]-1): 1,(sizes[0]//2-1, sizes[1]//2-1): 1}
-terminal_states = [(sizes[0]-1, sizes[1]-1)]
+# Working OK
+##optimizer = optim.SGD(policy_net.parameters(), lr = lr)
+#sizes = (20, 19); lr = 0.001; num_episodes = 5000; noise = 0.0; BATCH_SIZE = 30; GAMMA = 0.6;
+
+
+#sizes = (20, 12); lr = 0.0005; num_episodes = 1000; noise = 0.0; BATCH_SIZE = 200; GAMMA = 0.1;
+
+
+rewards = {(sizes[0]-1, sizes[1]-1): 1,(sizes[0]/2-1, sizes[1]/2-1): 1}
+terminal_states = [key for key,value in rewards.items()]
 # start_states = list(itertools.product(range(sizes[0]),range(sizes[1])))
 start_states = [(0, 0)]
 np_random = np.random.RandomState(0)
@@ -140,7 +153,8 @@ initial_net = DQN2(sizes=sizes).to(device)
 initial_net.load_state_dict(policy_net.state_dict())
 initial_net.eval()
 
-optimizer = optim.RMSprop(policy_net.parameters(),  lr=lr)
+#optimizer = optim.RMSprop(policy_net.parameters(),  lr=lr)
+optimizer = optim.Adam(policy_net.parameters(), lr = lr)
 memory = ReplayMemory(1000)
 
 
@@ -272,7 +286,7 @@ for i_episode in range(num_episodes):
     #print("t={}".format(t))
     episode_durations.append(t + 1)
 
-    if i_episode % 100 ==0:
+    if i_episode % 25 ==0:
         plt.figure(1)
         flt_len = 100
         f = np.array([1] * flt_len)
@@ -289,5 +303,4 @@ print(episode_durations)
 #plt.figure(1)
 #plt.plot(episode_durations)
 #plt.show()
-
 
