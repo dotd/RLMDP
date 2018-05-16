@@ -89,3 +89,76 @@ def OnlineFilterTest():
 
 #OnlineFilterTest()
 
+#####################################################################
+#### VERSION 2
+
+
+'''
+convention:
+low indices correspond to the past
+'''
+
+class OnlineFilter2():
+    def __init__(self, filter):
+        # First we flip the filter
+        self.filter = filter
+
+        # Get filter len
+        self.len = self.filter.shape[0] if type(self.filter) is np.ndarray else len(self.filter)
+
+        # implementation as deque
+        self.deque_reward = deque(maxlen=self.len)
+        self.deque_state = deque(maxlen=self.len)
+        self.deque_result = deque(maxlen=self.len)
+        self.deque_time = deque(maxlen=self.len)
+
+        # fillup with zeros
+        for i in range(self.len):
+            self.deque_reward.append(0)
+            self.deque_state.append(None)
+            self.deque_result.append(None)
+            self.deque_time.append(None)
+
+        self.samples_counter = 0
+
+    def add(self, reward, state):
+        self.deque_reward.append(reward)
+        self.deque_state.append(state)
+        res = np.sum([x * y for x, y in zip(self.deque_reward, self.filter)])
+        self.deque_result.append(res)
+        self.deque_time.append(self.samples_counter)
+        self.samples_counter +=1
+        current_result = self.get()
+        return current_result
+
+    def get(self):
+        if not self.is_valid():
+            return None
+        return (self.deque_result[-1], self.deque_time[0], self.deque_state[0])
+
+    def is_valid(self):
+        return self.samples_counter>=self.len
+
+
+def OnlineFilterTest2():
+
+    filter = [1,0.5,0]
+    reward = [10,20,30,40,50,60,70]
+    state = [0,1,2,3,2,1,0]
+    of = OnlineFilter2(filter)
+    print("Before: deque_reward={}".format(of.deque_reward))
+    print("Before: deque_state ={}".format(of.deque_state))
+    print("Before: deque_result={}".format(of.deque_result))
+    for i in range(len(reward)):
+        valid = of.add(reward[i], state[i])
+        print("{}".format(valid))
+        print("{}: deque_reward={}".format(i, list(of.deque_reward)))
+        print("{}: filter      ={}".format(i, of.filter))
+        print("{}: deque_state ={}".format(i, list(of.deque_state)))
+        print("{}: deque_time  ={}".format(i, list(of.deque_time)))
+        print("{}: deque_result={}".format(i, list(of.deque_result)))
+        print("\n")
+
+
+OnlineFilterTest2()
+

@@ -19,13 +19,15 @@ from TwoDim.TwoDimMDP import TwoDimSparseMDPSimulator
 from collections import  deque
 
 ########### ENVIRONMENT #################
-sizes = (5, 4)
-rewards = {(sizes[0]-1, sizes[1]-1): 1}
+
+sizes = (20, 12); lr = 0.0005; num_episodes = 1000; noise = 0.0; BATCH_SIZE = 200; GAMMA = 0.1;
+
+rewards = {(sizes[0]-1, sizes[1]-1): 1,(sizes[0]//2-1, sizes[1]//2-1): 1}
 terminal_states = [(sizes[0]-1, sizes[1]-1)]
 # start_states = list(itertools.product(range(sizes[0]),range(sizes[1])))
 start_states = [(0, 0)]
 np_random = np.random.RandomState(0)
-env = TwoDimSparseMDPSimulator(sizes=sizes, noise=0, rewards=rewards, random=np_random, start_states=start_states,
+env = TwoDimSparseMDPSimulator(sizes=sizes, noise=noise, rewards=rewards, random=np_random, start_states=start_states,
                              terminal_states=terminal_states)
 actions = env.get_actions_list()
 num_actions = len(actions)
@@ -77,8 +79,37 @@ class DQN(nn.Module):
         return self.head(x.view(x.size(0), -1))
 '''
 
+def action_2d_2_letter(action):
+    letter = None
+    if action==0:
+        letter = "U"
+    elif action==1:
+        letter = "D"
+    elif action == 2:
+        letter = "L"
+    elif action == 3:
+        letter = "R"
+    else:
+        letter = "*"
+    return letter
+
+def show_map_2d_as_text():
+    lines = []
+    for x in range(sizes[0]):
+        line =[]
+        for y in range(sizes[1]):
+            with torch.no_grad():
+                pos = (x, y)
+                screen = get_screen(pos)
+                state = policy_net(screen.float())
+                action = state.max(1)[1].view(1, 1)
+                letter = action_2d_2_letter(action)
+                line.append(letter)
+        lines.append("".join(line))
+    return "\n".join(lines)
+
 class DQN2(nn.Module):
-    def __init__(self, sizes, num_actions=4, intermediate = 10):
+    def __init__(self, sizes, num_actions=4, intermediate = 40):
         super(DQN2, self).__init__()
         self.len = sizes[0] * sizes[1]
         self.W1 = nn.Linear(self.len, out_features=intermediate)
@@ -98,23 +129,19 @@ def get_screen(state):
     screen_4d_torch = torch.reshape(screen_4d_torch, (1,1,screen_2d_np.shape[0],screen_2d_np.shape[1]))
     return screen_4d_torch
 
-BATCH_SIZE = 50
-GAMMA = 0.5
 EPS_START = 0.9
 EPS_END = 0.05
-EPS_DECAY = 200
+EPS_DECAY = 10
 TARGET_UPDATE = 1
 
 policy_net = DQN2(sizes=sizes).to(device)
-target_net = DQN2(sizes=sizes).to(device)
+
 initial_net = DQN2(sizes=sizes).to(device)
-target_net.load_state_dict(policy_net.state_dict())
 initial_net.load_state_dict(policy_net.state_dict())
-target_net.eval()
 initial_net.eval()
 
-optimizer = optim.RMSprop(policy_net.parameters())
-memory = ReplayMemory(100)
+optimizer = optim.RMSprop(policy_net.parameters(),  lr=lr)
+memory = ReplayMemory(1000)
 
 
 steps_done = 0
@@ -182,16 +209,22 @@ def optimize_model():
     optimizer.step()
     return loss
 
-num_episodes = 5000
-episode_len = np.prod(sizes)*6
+episode_len = np.sum(sizes)*10
 print("episode_max_len={}".format(episode_len))
 weights_initial = list(initial_net.parameters())
+
+print(show_map_2d_as_text())
+
 for i_episode in range(num_episodes):
     # Initialize the environment and state
     print("episode={}".format(i_episode))
 
     # initialize
-    env.reset()
+    if i_episode<=0:
+        env.cur_state = env.get_uniform_random_state()
+    else:
+        env.reset()
+
     #print("init_state = {}".format(env.cur_state))
 
     for t in range(episode_len):
@@ -229,17 +262,17 @@ for i_episode in range(num_episodes):
         # if we are done, we do nothing. Just init the dynamics
         #print("t={}, cur_state={}, cur_reward={}, action_idx={}, action_vec={}, next_state_vec={}, status_action={}, optimize={}".format(t,cur_state_vec, cur_reward, action_idx,  action_vec,  next_state_vec, status_action, status_optimize))
         if env.is_terminal(cur_state_vec):
-            print("is_terminal {}".format(t))
+            print("is_terminal {}".format(t+1))
+            if t%10==0:
+                print(show_map_2d_as_text())
             break
 
 
     # Update the target network
     #print("t={}".format(t))
     episode_durations.append(t + 1)
-    if i_episode % TARGET_UPDATE == -1:
-        target_net.load_state_dict(policy_net.state_dict())
 
-    if i_episode % 50 ==0 or i_episode:
+    if i_episode % 100 ==0:
         plt.figure(1)
         flt_len = 100
         f = np.array([1] * flt_len)
