@@ -9,7 +9,7 @@ EPS_END = 0.05
 EPS_DECAY = 200
 
 step_factor = 0.75
-step_start = 1e2
+#step_start = 1e1
 
 class Q_Learning():
     def __init__(self, U, random, eps_max_action, **kwargs):
@@ -26,6 +26,9 @@ class Q_Learning():
         self.random = random
         self.eps_max_action = eps_max_action
         self.sizes = kwargs.get("sizes", None)
+        self.step_start = kwargs.get("step_start", 1e2)
+        self.max_abs_delta_Q = 0
+
 
     def __str__(self):
         if self.sizes is not None and len(self.sizes)==2:
@@ -85,11 +88,14 @@ class Q_Learning():
                 self.Q[sample.state] = self.random.normal(size=(len(self.U),))*0
             if sample.next_state not in self.Q:
                 self.Q[sample.next_state] = self.random.normal(size=(len(self.U),))*0
-            lr = step_start/(self.steps**step_factor)
+            self.lr = self.step_start/(self.steps**step_factor)
             maximal_next_action = self.compute_optimal_action(sample.next_state)
             maximal_next_action_idx = self.envAction2index[maximal_next_action]
             maximal_action_idx = self.envAction2index[sample.action]
-            self.Q[sample.state][maximal_action_idx] = self.Q[sample.state][maximal_action_idx] + lr * (sample.reward + GAMMA*self.Q[sample.next_state][maximal_next_action_idx] - self.Q[sample.state][maximal_action_idx])
+            self.delta_Q = self.lr * (sample.reward + GAMMA*self.Q[sample.next_state][maximal_next_action_idx] - self.Q[sample.state][maximal_action_idx])
+            if abs(self.delta_Q) > self.max_abs_delta_Q:
+                self.max_abs_delta_Q = abs(self.delta_Q)
+            self.Q[sample.state][maximal_action_idx] = self.Q[sample.state][maximal_action_idx] + self.lr * (sample.reward + GAMMA*self.Q[sample.next_state][maximal_next_action_idx] - self.Q[sample.state][maximal_action_idx])
 
     def add_tuple(self, tuple):
         self.replay_memory.push(*tuple)
