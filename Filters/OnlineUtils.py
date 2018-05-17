@@ -1,7 +1,6 @@
 
 from collections import deque
 import numpy as np
-from math import sqrt
 
 class OnlineFilter():
     def __init__(self, filter):
@@ -99,9 +98,8 @@ low indices correspond to the past
 '''
 
 class OnlineFilter2():
-    def __init__(self, filter, sampler_len = 1):
-        # First we flip the filter
-        self.filter = filter
+    def __init__(self, filter_in, sampler_len=1):
+        self.filter = filter_in
 
         # Get filter len
         self.len = self.filter.shape[0] if type(self.filter) is np.ndarray else len(self.filter)
@@ -118,7 +116,6 @@ class OnlineFilter2():
             self.deque_state.append(None)
             self.deque_result.append(None)
             self.deque_time.append(None)
-
         self.samples_counter = 0
 
         # Sampler
@@ -139,6 +136,7 @@ class OnlineFilter2():
             if state not in self.sampler:
                 self.sampler[state] = deque(maxlen=self.sampler_len)
             self.sampler[state].append(sample)
+        # Current result: filtered result, time, state
         return current_result
 
     def get(self):

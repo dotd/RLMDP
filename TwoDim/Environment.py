@@ -1,5 +1,5 @@
 from TwoDim.TwoDimMDP import  TwoDimSparseMDPSimulator
-from TwoDim.Q_learning import Q_Learning, Transition
+from TwoDim.QLearning import Q_Learning, Transition
 import numpy as np
 random = np.random.RandomState(0)
 import itertools
