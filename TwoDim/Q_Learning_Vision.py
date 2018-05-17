@@ -21,11 +21,15 @@ from collections import  deque
 ########### ENVIRONMENT #################
 
 # Working well
-#sizes = (5, 3); lr = 0.0001; num_episodes = 5000; noise = 0.0; BATCH_SIZE = 10; GAMMA = 0.6; optimizer = optim.Adam(policy_net.parameters(), lr = lr)
-#sizes = (20, 19); lr = 0.005; num_episodes = 5000; noise = 0.0; BATCH_SIZE = 30; GAMMA = 0.6; optimizer = optim.Adam(policy_net.parameters(), lr = lr)
-#sizes = (20, 19); lr = 0.004; num_episodes = 5000; noise = 0.0; BATCH_SIZE = 30; GAMMA = 0.6; optimizer = optim.Adam(policy_net.parameters(), lr = lr)
+#sizes = (5, 3); lr = 0.0001; num_episodes = 5000; noise = 0.0; BATCH_SIZE = 10; GAMMA = 0.6; #optimizer = optim.Adam(policy_net.parameters(), lr = lr)
+#sizes = (20, 19); lr = 0.005; num_episodes = 5000; noise = 0.0; BATCH_SIZE = 30; GAMMA = 0.6; #optimizer = optim.Adam(policy_net.parameters(), lr = lr)
+#sizes = (20, 19); lr = 0.004; num_episodes = 5000; noise = 0.0; BATCH_SIZE = 30; GAMMA = 0.6; #optimizer = optim.Adam(policy_net.parameters(), lr = lr)
+
 # Stable and big enough...
-sizes = (20, 19); lr = 0.003; num_episodes = 5000; noise = 0.0; BATCH_SIZE = 30; GAMMA = 0.6;
+# sizes = (20, 19); lr = 0.003; num_episodes = 5000; noise = 0.0; BATCH_SIZE = 30; GAMMA = 0.6;
+
+# Trying
+#sizes = (32, 25); lr = 0.0005; num_episodes = 10000; noise = 0.0; BATCH_SIZE = 10; GAMMA = 0.5;
 
 # Working OK
 ##optimizer = optim.SGD(policy_net.parameters(), lr = lr)
@@ -35,7 +39,19 @@ sizes = (20, 19); lr = 0.003; num_episodes = 5000; noise = 0.0; BATCH_SIZE = 30;
 #sizes = (20, 12); lr = 0.0005; num_episodes = 1000; noise = 0.0; BATCH_SIZE = 200; GAMMA = 0.1;
 
 
-rewards = {(sizes[0]-1, sizes[1]-1): 1,(sizes[0]/2-1, sizes[1]/2-1): 1}
+sizes = (10, 9); lr = 0.00003; num_episodes = 5000; noise = 0.2; BATCH_SIZE = 100; GAMMA = 0.5; #optimizer = optim.Adam(policy_net.parameters(), lr = lr)
+
+# LArge rewards
+#rewards = {(sizes[0]-1, sizes[1]-1): 100, (sizes[0]-2, sizes[1]-1): 100,(sizes[0]-1, sizes[1]-2): 100, (sizes[0]-2, sizes[1]-2): 100}
+rewards = {(sizes[0]-1, sizes[1]-1): 100}
+when_to_start_from_zeros = 0
+
+nrr = np.random.RandomState(1234) # nrr - negative reward random
+nrr_value = -10
+number_of_negative_points = 0;
+for c in range(number_of_negative_points):
+    rewards[(nrr.choice(sizes[0]),nrr.choice(sizes[0]))]=nrr_value
+
 terminal_states = [key for key,value in rewards.items()]
 # start_states = list(itertools.product(range(sizes[0]),range(sizes[1])))
 start_states = [(0, 0)]
@@ -234,7 +250,7 @@ for i_episode in range(num_episodes):
     print("episode={}".format(i_episode))
 
     # initialize
-    if i_episode<=0:
+    if i_episode<=when_to_start_from_zeros:
         env.cur_state = env.get_uniform_random_state()
     else:
         env.reset()
@@ -274,8 +290,9 @@ for i_episode in range(num_episodes):
         # Perform one step of the optimization (on the target network)
         status_optimize = optimize_model()
         # if we are done, we do nothing. Just init the dynamics
-        #print("t={}, cur_state={}, cur_reward={}, action_idx={}, action_vec={}, next_state_vec={}, status_action={}, optimize={}".format(t,cur_state_vec, cur_reward, action_idx,  action_vec,  next_state_vec, status_action, status_optimize))
-        if env.is_terminal(cur_state_vec):
+        if cur_state_vec in env.rewards:
+            print("t={}, cur_state={}, cur_reward={}, action_idx={}, action_vec={}, next_state_vec={}, status_action={}, optimize={}".format(t,cur_state_vec, cur_reward, action_idx,  action_vec,  next_state_vec, status_action, status_optimize))
+        if env.is_terminal(cur_state_vec) and env.rewards[cur_state_vec]>0:
             print("is_terminal {}".format(t+1))
             if t%10==0:
                 print(show_map_2d_as_text())
@@ -286,9 +303,9 @@ for i_episode in range(num_episodes):
     #print("t={}".format(t))
     episode_durations.append(t + 1)
 
-    if i_episode % 25 ==0:
+    if i_episode % 15 ==0:
         plt.figure(1)
-        flt_len = 100
+        flt_len = 10
         f = np.array([1] * flt_len)
         f = f/len(f)
         vec = np.convolve(episode_durations,f)
@@ -300,7 +317,10 @@ for i_episode in range(num_episodes):
 print('Complete')
 print(episode_durations)
 
-#plt.figure(1)
-#plt.plot(episode_durations)
-#plt.show()
-
+plt.figure(1)
+flt_len = 10
+f = np.array([1] * flt_len)
+f = f / len(f)
+vec = np.convolve(episode_durations, f)
+plt.plot(vec[flt_len:-flt_len])
+plt.show(block=True)
