@@ -1,6 +1,7 @@
 import numpy as np
 import Policies
 import Utils
+from collections import Counter
 
 def get_MRP(mdp, mu):
     P = np.zeros((mdp.X,mdp.X))
@@ -51,21 +52,27 @@ def get_J_as_MC_raw(trajectory, gamma, X = None, func = lambda x: x):
     return J
 
 def get_discount_factor_as_filter(gamma, filt_len):
+    # this function doesn't flit the filter
     filt = np.zeros((filt_len,))
     filt[0] = 1
     for k in range(1,filt_len):
         filt[k] = filt[k-1]*gamma
-    filt = np.flip(filt,0)
     return filt
 
-def get_J_as_MC_filter(trajectory, gamma, X=None, filt_len = 40, func = lambda x: x):
+def get_J_as_MC_filter(trajectory, gamma, X=None, filt_len = 40, func = lambda x: x, info=False):
     # The trajectory is x,u,r
     X = np.array([vec[0] for vec in trajectory]).max()+1 if X is None else X
     # get the reward
     r = np.array([vec[2] for vec in trajectory])
     # make the filter
     filt = get_discount_factor_as_filter(gamma, filt_len)
+    filt = filt[::-1]
+    #print(filt)
+    #print(r)
+
+    # Doing the main thing: convolve.
     res = np.convolve(r,filt)
+    #print(res)
     start_idx = filt_len-1 # 39 is the first index, meaning we removed 39 indices
     end_idx = start_idx + r.shape[0]
     res = res[start_idx:end_idx]
@@ -78,7 +85,42 @@ def get_J_as_MC_filter(trajectory, gamma, X=None, filt_len = 40, func = lambda x
         times[x] +=1
         values[x] += func(res[k])
     J = values/times
-    return J
+    if info==False:
+        return J
+    else:
+        return J, res, values, times
+
+def get_B_moments_by_filter(X, x_traj, r_traj, filter_orig, moment_func = lambda x: x, reward_func = lambda x: x):
+    filt_len = filter.shape[0] if type(filter) is np.ndarray else len(filter_orig)
+    r_len = r_traj.shape[0] if type(r_traj) is np.ndarray else len(r_traj)
+    # Doing the convolution
+    filter_flip = filter_orig[::-1]
+    filtered = np.convolve(r_traj, filter_flip)
+    start_idx = filt_len-1 # if the filter length is 40, 39 is the first index, meaning we removed 39 indices
+    filtered = filtered[start_idx:]
+
+    # Do the stats for computing all states J
+    times = hist_list(x_traj, X)
+    # B is samples by each state
+    B = [[] for x in range(X)]
+    for idx in range(len(x_traj)):
+        x_state = x_traj[idx]
+        B[x_state].append(filtered[idx])
+
+    J = [np.mean(samples) for samples in B]
+    # S is the desired result: the computation of the desired moment for each state
+    S = np.zeros(shape=(X,))
+    for k in range(X):
+        S[k] = np.mean([moment_func(s-J[k]) for s in B[k]])
+
+    return S
+
+def hist_list(lst, X):
+    z = Counter(lst)
+    hist = [0] * X
+    for key, val in z.items():
+        hist[key]=val
+    return hist
 
 def get_J_as_TD(trajectory, gamma, X, alpha):
     '''
@@ -138,19 +180,25 @@ def get_policy_from_Q(Q):
         mu[idx_x, idx_maximal] = 1
     return mu
 
-def PI(mdp, gamma):
-    mu = Policies.generate_deterministic_policy(mdp.X, mdp.U)
-    mu_prev = np.zeros_like(mu)
+def PI(mdp, gamma, mu=None, max_iters=10):
+    if mu is None:
+        mu = Policies.generate_deterministic_policy(mdp.X, mdp.U)
+    mu_prev = mu-1
     iter_counter = 0
-    J_collector = []
+    # We allocate the maximum memory. Eventually we might truncate it.
+    J_collector = np.zeros(shape=(max_iters, mdp.X))
     while np.array_equal(mu_prev, mu)==False:
+        if iter_counter>=max_iters:
+            print("Reached max_iters")
+            break;
         P, R, R_std = get_MRP(mdp, mu)
         J = get_J(P, R, gamma)
-        J_collector.append(J)
+        J_collector[iter_counter,:] = J
         Q = get_Q(mdp, gamma, J)
         mu_prev = mu
         mu = get_policy_from_Q(Q)
         iter_counter +=1
+    J_collector = J_collector[0:iter_counter,:]
     return mu, J_collector, Q, iter_counter
 
 def check_J_collector_monotone(J_collector, debug_print = False, limit_Js = 10, limit_dim = 10  ):

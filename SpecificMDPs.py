@@ -1,15 +1,15 @@
-import numpy as np
 from Utils import *
 import math
 import Policies
-import MDPSimulator
-import collections
+import MDP
+
+DEPEND_ONLY_ON_START_STATE = "depend_only_on_start_state"
 
 def generate_investment_sim(p_noise = 0, **kwargs):
     P = np.array([[[1 - p_noise, p_noise], [1 - p_noise, p_noise]], [[p_noise, 1 - p_noise], [p_noise, 1 - p_noise]]])
-    R1 = kwargs.get("R1", 2)
+    R_state_1 = kwargs.get("R_state_1", 2)
     R1_std = kwargs.get("R1_std", math.sqrt(2))
-    R1D = np.array([1, R1])
+    R1D = np.array([1, R_state_1])
     R1D_std = np.array([0, R1_std])
     R = OneDVec2ThreeDVec(R1D,U=2)
     R_std = OneDVec2ThreeDVec(R1D_std,U=2)
@@ -18,7 +18,7 @@ def generate_investment_sim(p_noise = 0, **kwargs):
     if sparse_flag:
         pass
     else:
-        mdp = MDPSimulator.MDPSim(P = P, R = R, R_std=R_std)
+        mdp = MDP.MDP(P = P, R = R, R_std=R_std)
     return mdp
 
 def func1():
@@ -31,29 +31,33 @@ def func1():
     trajectory = mdp.simulate(x=0,policy=policy,num_samples=10)
     print(trajectory)
 
-def generate_random_MDP(X, U, B, R_sparse, std = 0, random_state = np.random.RandomState(0), basis = None):
+def generate_random_MDP(X, U, B, std = 0, random_state = np.random.RandomState(0), R_mode=DEPEND_ONLY_ON_START_STATE):
+    '''
+    :param X: state size
+    :param U: actions size
+    :param B: Branching factor
+    :param std:
+    :param random_state:
+    '''
     P = np.zeros(shape=(U,X,X))
     R = np.zeros(shape=(U,X,X))
     R_std = std*np.ones(shape=(U,X,X))
 
-    for u in range(U):
-        for x in range(X):
-            P[u, x] = get_random_sparse_vector(X, B, True, "uniform", random_state)
-            R[u, x] = get_random_sparse_vector(X, R_sparse, False, "gaussian", random_state)
-            R[u,x,:]  = R[u,x,0]
-        if u>=1:
-            R[u] = R[0]
+    for x in range(X):
+        for u in range(U):
+            P[u, x], R[u,x] = get_random_sparse_vector(X, B, random_state)
+        if R_mode==DEPEND_ONLY_ON_START_STATE:
+            R[0, x, :] = R[0,x,0]
+            R[u,x,:] = R[0,x,0]
 
-    if basis is not None:
-        basis = random_state.normal(size=(X, basis))
-    mdp = MDPSimulator.MDPSim(P = P, R = R, R_std=R_std, basis = basis)
+    mdp = MDP.MDP(P = P, R = R, R_std=R_std)
     return mdp
 
 def check_generate_random_MDP():
     mdp = generate_random_MDP(X=5,U=3,B=2,R_sparse=1)
     print(mdp.show())
 
-def generate_clean_2d_maze(x_size=4, y_size = 3, reward_coord = (3,2)):
+def generate_clean_2d_maze(x_size=4, y_size = 3, reward_coord = (3,2), start_method="random"):
     actions = {0:"increase_y", 1:"increase_x", 2:"decrease_y", 3:"decrease_x"}
     coords2states = {}
     states2coords = {}
@@ -70,6 +74,7 @@ def generate_clean_2d_maze(x_size=4, y_size = 3, reward_coord = (3,2)):
 
     P = np.zeros(shape=(U,X,X))
     r = np.zeros(shape=(U,X,X))
+    # This loops based on the state and action tells what are the next_state
     for x_origin in range(x_size):
         for y_origin in range(y_size):
             for u,u_str in actions.items():
@@ -91,12 +96,17 @@ def generate_clean_2d_maze(x_size=4, y_size = 3, reward_coord = (3,2)):
                 P[u,state_origin,state_target] = 1.0
                 if (x_origin,y_origin)==reward_coord:
                     r[u,state_origin,state_target] = 1.0
-    mdp = MDPSimulator.MDPSim(P,r,info={"coords2states":coords2states, "states2coords":states2coords, "actions":actions})
+    # If we reached the reward, we randomly go to other places in the grid.
+    for u in range(U):
+        for y in range(X):
+            P[u,coords2states[reward_coord],y] = 1/X
+    r_std = np.zeros_like(r)
+    mdp = MDP.MDP(P, r, r_std, info={"coords2states":coords2states, "states2coords":states2coords, "actions":actions})
     return mdp
 
 def check_generate_clean_2d_maze():
     mdp = generate_clean_2d_maze()
     print(mdp.show())
 
-check_generate_clean_2d_maze()
+#check_generate_clean_2d_maze()
 
