@@ -32,8 +32,8 @@ terminal_states = [key for key,value in rewards.items()]
 # start_states = list(itertools.product(range(sizes[0]),range(sizes[1])))
 start_states = [(0, 0)]
 np_random = np.random.RandomState(0)
-env = TwoDimSparseMDPSimulator(sizes=sizes, noise=noise, rewards=rewards, random=np_random, start_states=start_states,
-                             terminal_states=terminal_states)
+env = TwoDimSparseMDPSimulator(shape=sizes, noise=noise, rewards=rewards, random=np_random, start_states=start_states,
+                               terminal_states=terminal_states)
 actions = env.get_actions_list()
 num_actions = len(actions)
 device = torch.device("cpu")
