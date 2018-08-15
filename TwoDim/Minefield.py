@@ -12,6 +12,7 @@ class Minefield(Env):
                  shape=np.array([64, 53]),
                  mine_penalty=-40,
                  reach_reward=100,
+                 step_cost=1,
                  rand_action_prob=0.05,
                  num_mines=80,
                  start=np.array([np.array([60, 53])]),
@@ -21,17 +22,19 @@ class Minefield(Env):
         self.rand_gen = random_generator if random_generator else self.seed(42)
         self.dim = len(shape)
         self.shape = shape
+        self.num_mines = 80
+        self.num_mines = num_mines
         # All possible coordinates+minefield tuples
         self.observation_space = [np.array(coord) for coord in product(*[range(d) for d in shape])]
         self.minefield = self.gen_field(num_mines=num_mines)
         self.action_space = list(np.vstack([np.eye(self.dim), -1 * np.eye(self.dim)]))
         self.mine_penalty = mine_penalty
         self.reach_reward = reach_reward
+        self.step_cost = step_cost
         self.rand_action_prob = rand_action_prob
         self.start_states = start
         self.terminal_states = terminal_states
         self.cur_state = self.get_random_start_state()
-        self.num_mines = 80
         # Need to generate the mine field here below. Figure it out later.
 
     def _step(self, action):
@@ -40,13 +43,21 @@ class Minefield(Env):
         :param action:
         :return:
         """
+        self.cur_state = self.compute_next_state(self.cur_state, action)
+        done = self.cur_state in self.terminal_states or self.minefield[self.cur_state] == 1
 
+        reward = (self.reach_reward if self.cur_state in self.terminal_states
+                  else (self.mine_penalty if self.minefield[self.cur_state] == 1
+                        else self.step_cost))
+        # Change this if necessary
+        info = None
+        return self.cur_state, reward, done, info
 
     def _reset(self):
-        pass
+        self.cur_state = self.get_random_start_state()
 
     def _render(self, mode='human'):
-        pass
+        return self.minefield
 
     def _seed(self, seed=42):
         """
@@ -83,14 +94,21 @@ class Minefield(Env):
             minefield[self.observation_space[coord]] = 1
         return minefield
 
+    def compute_next_state(self, state, action):
+        """
+        Return the next step, after applying the action. Corrects for boundary limitations
+        :param state: Numpy array of coordinates
+        :param action:
+        :return: a new state, respecting the borders of the minefield
+        """
+        return np.minimum(np.maximum(state + action,
+                          np.zeros(len(self.shape))),
+                          self.shape - 1)
+
     def get_adjacent_squares(self, state):
         """
         Get all states reachable by a single action
         :param state:
         :return:
         """
-        return np.unique([np.minimum(np.maximum(state + action,
-                                                np.zeros(len(self.shape))),
-                                     self.shape - 1)
-                          for action in self.action_space],
-                         axis=0)
+        return np.unique([self.compute_next_state(state, action) for action in self.action_space], axis=0)
