@@ -38,12 +38,18 @@ class Minefield(Env):
         self.minefield = self.gen_field(num_mines=num_mines)
         # Need to generate the mine field here below. Figure it out later.
 
-    def _step(self, action):
+    def _step(self, input_action, debug=False):
         """
         Apply given action, and return a new state and reward
         :param action:
         :return:
         """
+
+        # Take a random action with probability self.rand_action_prob
+        action = input_action if self.rand_gen.uniform(0, 1) > self.rand_action_prob else self.get_random_action()
+        if debug and action !=input_action:
+            print("Randomly selected a different action")
+
         self.cur_state = self.compute_next_state(self.cur_state, action)
         done = self.cur_state in self.terminal_states or self.minefield[self.cur_state] == 1
 
@@ -77,6 +83,9 @@ class Minefield(Env):
             return self.start_states[0]
         return self.start_states[self.rand_gen.choice(len(self.start_states))]
 
+    def get_random_action(self):
+        return self.action_space[self.rand_gen.choice(len(self.action_space))]
+
     def is_terminal(self, state=None):
         if state is None:
             state = self.cur_state
@@ -96,14 +105,14 @@ class Minefield(Env):
             self.minefield[tuple(candidate_locations[coord])] = 1
         return self.minefield
 
-    def compute_next_state(self, action, state=None):
+    def compute_next_state(self, action, input_state=None):
         """
         Return the next step, after applying the action. Corrects for boundary limitations
         :param state: Numpy array of coordinates
         :param action:
         :return: a new state, respecting the borders of the minefield
         """
-        state=self.cur_state if state==None else state
+        state = self.cur_state if input_state is None else input_state
         return np.minimum(np.maximum(state + action,
                           np.zeros(len(self.shape))),
                           self.shape - 1)
@@ -119,4 +128,13 @@ class Minefield(Env):
 if __name__ == "__main__":
     m = Minefield()
     actions = m.action_space
-    print(actions)
+    assert(all(m.compute_next_state(action=np.array([1, 0]), input_state=np.array([63, 52])) == np.array([63, 52])))
+    assert (all(m.compute_next_state(action=np.array([0, 1]), input_state=np.array([63, 52])) == np.array([63, 52])))
+    assert (all(m.compute_next_state(action=np.array([-1, 0]), input_state=np.array([0, 0])) == np.array([0, 0])))
+    action_index = 0
+    done = False
+    while not done:
+        new_state, reward, done, info = m._step(m.action_space, debug=True)
+        action_index = (action_index + 1) % len(m.action_space)
+
+    print("Done! last reward: ", reward, " , last state: ", new_state)
