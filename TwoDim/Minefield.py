@@ -9,25 +9,25 @@ class Minefield(Env):
     Perhaps even inherit from GoalEnv?
     """
     def __init__(self,
-                 shape=np.array([64, 53]),
+                 shape=np.array([64, 53], dtype=np.int),
                  mine_penalty=-40,
                  reach_reward=100,
                  step_cost=1,
                  rand_action_prob=0.05,
                  num_mines=80,
-                 start=np.array([np.array([60, 52])]),
-                 terminal_states=np.array([np.array([60, 2])]),
+                 start=np.array([np.array([60, 52], dtype=np.int)]),
+                 terminal_states=np.array([np.array([60, 2], dtype=np.int)]),
                  random_generator=None):
 
-        self.rand_gen = random_generator if random_generator else self.seed(42)
+        self.rand_gen = random_generator if random_generator else self.seed(142)
         self.dim = len(shape)
         self.shape = shape
         self.num_mines = 80
         self.num_mines = num_mines
         # All possible coordinates+minefield tuples
-        self.observation_space = [np.array(coord) for coord in product(*[range(d) for d in shape])]
+        self.observation_space = [np.array(coord, dtype=np.int) for coord in product(*[range(d) for d in shape])]
 
-        self.action_space = list(np.vstack([np.eye(self.dim), -1 * np.eye(self.dim)]))
+        self.action_space = list(np.vstack([np.eye(self.dim, dtype=np.int), -1 * np.eye(self.dim, dtype=np.int)]))
         self.mine_penalty = mine_penalty
         self.reach_reward = reach_reward
         self.step_cost = step_cost
@@ -46,16 +46,19 @@ class Minefield(Env):
         """
 
         # Take a random action with probability self.rand_action_prob
+        if debug:
+            print("Taking a step: ", input_action)
         action = input_action if self.rand_gen.uniform(0, 1) > self.rand_action_prob else self.get_random_action()
-        if debug and action !=input_action:
+        if debug and all(action != input_action):
             print("Randomly selected a different action")
 
         self.cur_state = self.compute_next_state(self.cur_state, action)
-        done = self.cur_state in self.terminal_states or self.minefield[self.cur_state] == 1
-
+        hit_mine = self.minefield[self.cur_state[0], self.cur_state[1]] == 1
+        if debug and hit_mine:
+            print("Hit a mine at location: ", self.cur_state)
+        done = self.is_terminal(self.cur_state) or hit_mine
         reward = (self.reach_reward if self.cur_state in self.terminal_states
-                  else (self.mine_penalty if self.minefield[self.cur_state] == 1
-                        else self.step_cost))
+                  else (self.mine_penalty if hit_mine else self.step_cost))
         # Change this if necessary
         info = None
         return self.cur_state, reward, done, info
@@ -89,7 +92,7 @@ class Minefield(Env):
     def is_terminal(self, state=None):
         if state is None:
             state = self.cur_state
-        return state in self.terminal_states
+        return any([all(state == terminal) for terminal in self.terminal_states])
 
     def gen_field(self, num_mines):
         """
@@ -114,7 +117,7 @@ class Minefield(Env):
         """
         state = self.cur_state if input_state is None else input_state
         return np.minimum(np.maximum(state + action,
-                          np.zeros(len(self.shape))),
+                          np.zeros(len(self.shape), dtype=np.int)),
                           self.shape - 1)
 
     def get_adjacent_squares(self, state):
@@ -133,8 +136,12 @@ if __name__ == "__main__":
     assert (all(m.compute_next_state(action=np.array([-1, 0]), input_state=np.array([0, 0])) == np.array([0, 0])))
     action_index = 0
     done = False
+    total_reward = 0
+    state = m.cur_state
     while not done:
-        new_state, reward, done, info = m._step(m.action_space, debug=True)
+        state, reward, done, info = m._step(m.action_space[action_index], debug=True)
         action_index = (action_index + 1) % len(m.action_space)
+        # note: this should be probably be a decaying series
+        total_reward += reward
 
-    print("Done! last reward: ", reward, " , last state: ", new_state)
+    print("Done! last reward: ", total_reward, " , last state: ", state)
