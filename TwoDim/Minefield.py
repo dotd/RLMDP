@@ -19,7 +19,7 @@ class Minefield(Env):
                  terminal_states=np.array([np.array([60, 2], dtype=np.int)]),
                  random_generator=None):
 
-        self.rand_gen = random_generator if random_generator else self.seed(142)
+        self.rand_gen = random_generator if random_generator else np.random.RandomState(142)
         self.dim = len(shape)
         self.shape = shape
         self.num_mines = 80
