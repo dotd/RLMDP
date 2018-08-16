@@ -155,9 +155,3 @@ class TwoDimSparseMDPSimulator():
 
     def reset(self):
         self.cur_state = self.get_random_start_state()
-
-    
-
-
-
-
