@@ -50,11 +50,11 @@ def get_screen(state, environment):
     return screen_4d_torch
 
 
-def smooth_signal(signal, filt_len):
-    f = np.array([1] * filt_len)
+def smooth_signal(signal, window_smooth_len):
+    f = np.array([1] * window_smooth_len)
     f = f / len(f)
     vec = np.convolve(signal, f)
-    vec = vec[filt_len:-filt_len]
+    vec = vec[window_smooth_len:-window_smooth_len]
     return vec
 
 
