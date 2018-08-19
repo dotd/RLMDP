@@ -101,13 +101,16 @@ class Minefield(Env):
         Generates a random Minefield
         :return:
         """
-        self.minefield = np.zeros(self.shape)
+
+        self.minefield = np.zeros(self.shape, dtype=np.int)
+        # Choose num_mines according to a linearly decaying distribution, without replacement
         # Mines cannot be located in a start state or a terminal state
-        candidate_locations = [coord for coord in self.observation_space
-                               if coord not in self.terminal_states + self.start_states]
-        mine_indices = self.rand_gen.choice(range(len(candidate_locations)), num_mines, replace=False)
-        for coord in mine_indices:
-            self.minefield[tuple(candidate_locations[coord])] = 1
+        while len(self.minefield.nonzero()[0]) < num_mines:
+            x = int(self.rand_gen.triangular(0, 0, self.shape[1] - 1))
+            y = int(self.rand_gen.triangular(0, 0, self.shape[0] - 1))
+            if np.array([y, x], dtype=np.int) not in (self.terminal_states + self.start_states) and self.minefield[y, x] == 0:
+                self.minefield[y, x] = 1
+
         return self.minefield
 
     def compute_next_state(self, action, input_state=None):
