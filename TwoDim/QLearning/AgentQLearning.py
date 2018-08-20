@@ -5,7 +5,7 @@ from TwoDim.QLearning.StateActionTable import StateActionTable
 
 class AgentQLearning(AgentBase):
 
-    def __init__(self, states, actions, default_q_value=0, random = np.random.RandomState(142), eps_greedy = 0.01, gamma = 0.5, lr = 0.01):
+    def __init__(self, states, actions, random, default_q_value=0, eps_greedy = 0.01, gamma = 0.5, lr = 0.01):
         """
         :param actions: the actions of the actions in the agent's setup
         :param random: giving the numpy RandomState generator.

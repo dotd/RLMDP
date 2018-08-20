@@ -9,6 +9,7 @@ class Minefield(Env):
     Perhaps even inherit from GoalEnv?
     """
     def __init__(self,
+                 random_generator,
                  shape=np.array([64, 53], dtype=np.int),
                  mine_penalty=-40,
                  reach_reward=100,
@@ -17,9 +18,9 @@ class Minefield(Env):
                  num_mines=80,
                  start=np.array([np.array([60, 52], dtype=np.int)]),
                  terminal_states=np.array([np.array([60, 2], dtype=np.int)]),
-                 random_generator=None):
+                 ):
 
-        self.rand_gen = random_generator if random_generator else np.random.RandomState(142)
+        self.rand_gen = random_generator
         self.dim = len(shape)
         self.shape = shape
         self.num_mines = 80
