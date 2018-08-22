@@ -9,7 +9,7 @@ rewards = {(9,9):1}
 terminal_states = [(9,9)]
 #start_states = list(itertools.product(range(sizes[0]),range(sizes[1])))
 start_states = [(0,0)]
-X = TwoDimSparseMDPSimulator( sizes=sizes, noise=0.1, rewards=rewards, random = random, start_states=start_states, terminal_states=terminal_states)
+X = TwoDimSparseMDPSimulator(shape=sizes, noise=0.1, rewards=rewards, random = random, start_states=start_states, terminal_states=terminal_states)
 actions = X.get_actions_list()
 
 Q = Q_Learning(U=actions, random = random, eps_max_action = 1e-3, sizes = sizes)
