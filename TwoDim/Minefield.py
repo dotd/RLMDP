@@ -9,6 +9,7 @@ class Minefield(Env):
     Perhaps even inherit from GoalEnv?
     """
     def __init__(self,
+                 random_generator,
                  shape=np.array([64, 53], dtype=np.int),
                  mine_penalty=-40,
                  reach_reward=100,
@@ -17,9 +18,9 @@ class Minefield(Env):
                  num_mines=80,
                  start=np.array([np.array([60, 52], dtype=np.int)]),
                  terminal_states=np.array([np.array([60, 2], dtype=np.int)]),
-                 random_generator=None):
+                 ):
 
-        self.rand_gen = random_generator if random_generator else self.seed(142)
+        self.rand_gen = random_generator
         self.dim = len(shape)
         self.shape = shape
         self.num_mines = 80
@@ -48,7 +49,8 @@ class Minefield(Env):
         # Take a random action with probability self.rand_action_prob
         if debug:
             print("Taking a step: ", input_action)
-        action = input_action if self.rand_gen.uniform(0, 1) > self.rand_action_prob else self.get_random_action()
+        random_step = self.rand_gen.uniform(0, 1) < self.rand_action_prob
+        action = self.get_random_action() if random_step else input_action
         if debug and not np.array_equiv(action, input_action):
             print("Randomly selected a different action")
 
@@ -62,7 +64,7 @@ class Minefield(Env):
         reward = (self.reach_reward if reached_terminal
                   else (self.mine_penalty if hit_mine else self.step_cost))
         # Change this if necessary
-        info = None
+        info = {"random_step":random_step}
         return self.cur_state, reward, done, info
 
     def _reset(self):
@@ -123,7 +125,7 @@ class Minefield(Env):
         input_state = self.cur_state if input_state is None else input_state
         return np.minimum(np.maximum(input_state + action,
                           np.zeros(len(self.shape), dtype=np.int)),
-                          self.shape - 1)
+                          np.array(self.shape) - 1)
 
     def get_adjacent_squares(self, input_state):
         """
@@ -132,6 +134,13 @@ class Minefield(Env):
         :return:
         """
         return np.unique([self.compute_next_state(input_state, action) for action in self.action_space], axis=0)
+
+    def __str__(self):
+        lines = []
+        lines.append("dim={}".format(self.dim))
+        lines.append("shape={}".format(self.shape))
+
+
 
 if __name__ == "__main__":
     m = Minefield()

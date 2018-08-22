@@ -31,9 +31,7 @@ class IxMixDrix:
                 # this square is captured by a player
                 if self.board[y,x]>0:
                     # horizontal
-                    if self.board[y,x:(x+self.size_victory)]==self.board[y,x] or
-                        self.board[y:(y+self.size_victory), x] == self.board[y, x] or
-                        self.board
+                    if self.board[y,x:(x+self.size_victory)]==self.board[y,x] or self.board[y:(y+self.size_victory), x] == self.board[y, x] or self.board:
                         return self.board[y,x]
                     # vertical
 

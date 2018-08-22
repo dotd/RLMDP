@@ -2,6 +2,7 @@ from collections import namedtuple
 import random
 import torch
 import numpy as np
+from TwoDim.TwoDimMDP import TwoDimSparseMDPSimulator
 
 Transition = namedtuple('Transition', ('state', 'action', 'next_state', 'reward'))
 
@@ -49,9 +50,26 @@ def get_screen(state, environment):
     return screen_4d_torch
 
 
-def smooth_signal(signal, filt_len):
-    f = np.array([1] * filt_len)
+def smooth_signal(signal, window_smooth_len):
+    f = np.array([1] * window_smooth_len)
     f = f / len(f)
     vec = np.convolve(signal, f)
-    vec = vec[filt_len:-filt_len]
+    vec = vec[window_smooth_len:-window_smooth_len]
     return vec
+
+
+def get_paper_mdp():
+    '''
+    shape, noise_prob, rewards, random, start_states, terminal_states
+    :return:
+    '''
+    shape = (6,7)
+    noise_prob = 0.1
+    rewards = {(shape[0]-1,shape[1]-1):1}
+    random = np.random.RandomState(0)
+    start_states = [(0,0)]
+    terminal_states = [(shape[0]-1,shape[1]-1)]
+    mdp = TwoDimSparseMDPSimulator(shape, noise_prob, rewards, random, start_states, terminal_states)
+    return mdp
+
+mdp = get_paper_mdp()
