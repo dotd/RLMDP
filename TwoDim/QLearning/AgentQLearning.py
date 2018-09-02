@@ -20,8 +20,8 @@ class AgentQLearning(AgentBase):
         self.gamma = gamma
         self.lr = lr
 
-    def get_best_action(self, state, eps = 0):
-        q_value = [self.q_table.get_value(state, action) for action in self.actions]
+    def get_best_action(self, state_cur, eps = 0):
+        q_value = [self.q_table.get_value(state_cur, action) for action in self.actions]
         # get the maximum value
         max_value = max(q_value)
         idx = np.where(np.array(q_value) >= max_value - eps)

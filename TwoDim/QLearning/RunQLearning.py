@@ -5,7 +5,7 @@ from TwoDim.TwoDimUtils import *
 import numpy as np
 
 
-def run_main(mdp, agent, num_episodes = 3000, max_episode_len = 200):
+def run_main(mdp, agent, num_episodes, max_episode_len):
     episode_durations = []
     shortest_path = sum(mdp.shape)-2
     best_average_reward = (mdp.reach_reward-shortest_path)/shortest_path
@@ -32,17 +32,26 @@ def run_main(mdp, agent, num_episodes = 3000, max_episode_len = 200):
     plt.show(block=True)
 
 
-def run_q_learning():
-    shape = (5, 6)
+def run_q_learning(**kwargs):
+    # The seed for reproducibility
     random = np.random.RandomState(142)
+
+    # The MDP
+    shape = (5, 6)
     mdp = Minefield(
         random_generator=random,
         shape=shape,
         num_mines=2,
         start=np.array([np.array([0, 0], dtype=np.int)]),
-        terminal_states=np.array([np.array([shape[0]-1, shape[1]-1], dtype=np.int)]))
+        terminal_states=np.array([np.array([shape[0]-1, shape[1]-1], dtype=np.int)])) # Terminal state in the corner
+
+    # The Agent
     agent = AgentQLearning(actions=mdp.action_space, states=None, random=random)
-    run_main(mdp, agent)
+
+    # running it.
+    num_episodes = kwargs.get("num_episodes")
+    max_episode_len = kwargs.get("max_episode_len")
+    run_main(mdp, agent, num_episodes, max_episode_len)
 
 if __name__ == "__main__":
-    run_q_learning()
+    run_q_learning(num_episodes=300, max_episode_len=200)
