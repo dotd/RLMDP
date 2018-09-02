@@ -15,9 +15,10 @@ def run_main(mdp, agent, num_episodes, max_episode_len):
         mdp._reset()
         reward_vec = []
         for i in range(max_episode_len):
-            state = mdp.cur_state
+            state = tuple(mdp.cur_state)
             action = agent.choose_action(state)
             next_state, reward, done, info = mdp._step(action)
+            next_state = tuple(next_state)
             reward_vec.append(reward)
             agent.update(state, action, reward, next_state)
             if done:
@@ -46,7 +47,7 @@ def run_q_learning(**kwargs):
         terminal_states=np.array([np.array([shape[0]-1, shape[1]-1], dtype=np.int)])) # Terminal state in the corner
 
     # The Agent
-    agent = AgentQLearning(actions=mdp.action_space, states=None, random=random)
+    agent = AgentQLearning(actions=mdp.action_space, random=random)
 
     # running it.
     num_episodes = kwargs.get("num_episodes")
@@ -54,4 +55,4 @@ def run_q_learning(**kwargs):
     run_main(mdp, agent, num_episodes, max_episode_len)
 
 if __name__ == "__main__":
-    run_q_learning(num_episodes=300, max_episode_len=200)
+    run_q_learning(num_episodes=550, max_episode_len=200)

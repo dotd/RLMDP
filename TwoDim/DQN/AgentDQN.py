@@ -1,10 +1,10 @@
 import torch
 import torch.optim as optim
 import torch.nn.functional as F
-
 from TwoDim.AgentBase import AgentBase
 import numpy as np
 from TwoDim.DQN.Nets import DQN1Layer
+
 
 class AgentDQN(AgentBase):
 
@@ -54,6 +54,7 @@ def test_AgentDQN():
     policy_net = DQN1Layer(dim_state=dim_states, num_actions=len(actions))
 
     dqn = AgentDQN(dim_states=dim_states, actions=actions, random=random)
+
 
 if __name__ == "__main__":
     test_AgentDQN()

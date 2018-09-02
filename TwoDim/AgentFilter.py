@@ -5,6 +5,7 @@ import torch.nn.functional as F
 from TwoDim.Nets import DQN2
 from TwoDim.TwoDimUtils import ReplayMemory
 from TwoDim.TwoDimUtils import Transition
+from TwoDim.TwoDimUtils import FilterSample
 
 from Filters.OnlineUtils import OnlineFilter2
 
@@ -13,9 +14,9 @@ import math
 
 from collections import namedtuple
 
-FilterSample = namedtuple('FilterSample', ('state', 'action','value'))
 
 class AgentFilter():
+
     def __init__(self, grid_sizes, num_actions, **kwargs):
         self.memory_replay_len = kwargs.get("memory_replay_len", 1000)
         self.filter_replay_len = kwargs.get("filter_replay_len", 1000)
@@ -26,7 +27,7 @@ class AgentFilter():
         self.BATCH_SIZE = kwargs.get("BATCH_SIZE", 100)
         self.GAMMA = kwargs.get("GAMMA")
         self.num_actions = num_actions
-        self.device = torch.device(kwargs.get("device","cpu"))
+        self.device = torch.device(kwargs.get("device", "cpu"))
         self.intermediate = kwargs.get("intermediate",60)
 
         self.policy_net = DQN2(sizes=grid_sizes, intermediate=self.intermediate).to(self.device)

@@ -11,7 +11,7 @@ class DQN2(nn.Module):
 
     def forward(self, x):
         # flatten
-        x = x.view(x.size(0),self.len)
+        x = x.view(x.size(0), self.len)
         x = self.W1(x)
         x = F.relu(x)
         x = self.W2(x)

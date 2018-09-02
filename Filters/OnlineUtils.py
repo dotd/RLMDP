@@ -2,6 +2,7 @@
 from collections import deque
 import numpy as np
 
+
 class OnlineFilter():
     def __init__(self, filter):
         self.filter = filter[::-1]
@@ -69,7 +70,7 @@ class ComputeBasicStats():
             return [self.stats[x].get() for x in range(self.X)]
 
 
-def OnlineFilterTest():
+def online_filter_test():
     filter = [1,0.5,0]
     reward = [0,1,2,3,4,5,6]
     state = [0,1,0,1,0,1,0]
@@ -97,25 +98,30 @@ convention:
 low indices correspond to the past
 '''
 
-class OnlineFilter2():
+
+class OnlineFilter2:
     def __init__(self, filter_in, sampler_len=1):
         self.filter = filter_in
 
-        # Get filter len
+        # Get filter len (for both numpy and list)
         self.len = self.filter.shape[0] if type(self.filter) is np.ndarray else len(self.filter)
 
         # implementation as deque
+        self.deque_time = deque(maxlen=self.len)
         self.deque_reward = deque(maxlen=self.len)
         self.deque_state = deque(maxlen=self.len)
+
+        self.deque_result_time = deque(maxlen=self.len)
         self.deque_result = deque(maxlen=self.len)
-        self.deque_time = deque(maxlen=self.len)
 
         # fill-up with zeros
         for i in range(self.len):
-            self.deque_reward.append(0)
-            self.deque_state.append(None)
-            self.deque_result.append(None)
             self.deque_time.append(None)
+            self.deque_state.append(None)
+            self.deque_reward.append(None)
+
+            self.deque_result.append(None)
+            self.deque_result_time.append(None)
         self.samples_counter = 0
 
         # Sampler
@@ -125,10 +131,12 @@ class OnlineFilter2():
     def add(self, reward, state):
         self.deque_reward.append(reward)
         self.deque_state.append(state)
-        res = np.sum([x * y for x, y in zip(self.deque_reward, self.filter)])
-        self.deque_result.append(res)
         self.deque_time.append(self.samples_counter)
-        self.samples_counter +=1
+        self.samples_counter += 1
+
+        res = np.sum([x * y for x, y in zip(self.deque_reward, self.filter)]) if self.is_valid() else None
+        self.deque_result.append(res)
+        self.deque_result_time.append(self.deque_time[0])
         current_result = self.get()
         if current_result is not None:
             state = current_result[2]
@@ -142,35 +150,51 @@ class OnlineFilter2():
     def get(self):
         if not self.is_valid():
             return None
-        return (self.deque_result[-1], self.deque_time[0], self.deque_state[0])
+        return self.deque_result[-1], self.deque_time[0], self.deque_state[0]
 
     def is_valid(self):
-        return self.samples_counter>=self.len
+        return self.samples_counter >= self.len
 
 
-def OnlineFilterTest2():
+def online_filter_test2():
+    '''
+    The filter works in the following way (explanation by example):
+    Suppose we have a filter [1, 0.5, 0]
+    Next, we see the rewards given by the mdp and the states:
 
-    filter = [1,0.5,0]
-    reward = [10,20,30,40,50,60,70,80,90,100,110]
-    state = [0,1,2,3,2,1,0,0,1,2,3]
-    state = [(s,s) for s in state]
-    of = OnlineFilter2(filter, sampler_len=4)
+    time:   t=0     t=1     t=2
+    state:  0       1       2
+    reward: 10      20      30
+    filter: 1       0.5     0
+
+    For state 0 we have value function of 10*1 + 20*0.5 + 0*30 = 20
+
+    :return:
+    '''
+
+    filter_vec = [1, 0.5, 0]
+    reward = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110]
+    state = [0, 1, 2, 3, 2, 1, 0, 0, 1, 2, 3]
+    true_result = [20, ]
+    # state = [(s, s) for s in state]
+    of = OnlineFilter2(filter_vec, sampler_len=4)
     print("Before: deque_reward={}".format(of.deque_reward))
     print("Before: deque_state ={}".format(of.deque_state))
     print("Before: deque_result={}".format(of.deque_result))
     for i in range(len(reward)):
         valid = of.add(reward[i], state[i])
-        print("{}".format(valid))
-        print("{}: deque_reward={}".format(i, list(of.deque_reward)))
-        print("{}: filter      ={}".format(i, of.filter))
-        print("{}: deque_state ={}".format(i, list(of.deque_state)))
-        print("{}: deque_time  ={}".format(i, list(of.deque_time)))
-        print("{}: deque_result={}".format(i, list(of.deque_result)))
+        print("valid={}".format(valid))
+        print("t={}: filter      ={}".format(i, of.filter))
+        print("t={}: deque_time  ={}".format(i, list(of.deque_time)))
+        print("t={}: deque_state ={}".format(i, list(of.deque_state)))
+        print("t={}: deque_reward={}".format(i, list(of.deque_reward)))
+        print("t={}: deque_result_time={}".format(i, list(of.deque_result_time)))
+        print("t={}: deque_result={}".format(i, list(of.deque_result)))
         print("\n")
 
     print("\n".join([str(key) + "\t" + str(value) for key,value in of.sampler.items()]))
 
 
-
-#OnlineFilterTest2()
+if __name__ == "__main__":
+    online_filter_test2()
 

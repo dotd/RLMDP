@@ -34,7 +34,7 @@ class DQN1Layer(nn.Module):
 
     def forward(self, x):
         # flatten
-        x = x.view(x.size(0), self.len)
+        # x = x.view(x.size(0), self.len)
         x = self.W1(x)
         x = F.relu(x)
         return x
@@ -45,9 +45,13 @@ def test_DQN1Layer():
     print("Weights are:\n{}".format(dqn.W1.weight))
     print("Bias is:\n{}".format(dqn.W1.bias))
 
-    dqn = DQN1Layer(dim_state=2, num_actions=2, init_values={"weight": [[0, 1], [2, 3]], "bias": [10, 20]})
+    dqn = DQN1Layer(dim_state=2, num_actions=2, init_values={"weight": [[0, 1], [2, 3]], "bias": [-4, -5]})
     print("Weights are:\n{}".format(dqn.W1.weight))
     print("Bias is:\n{}".format(dqn.W1.bias))
+
+    input_vec = torch.Tensor([[0.5, 1], [1, 2]])
+    output_vec = dqn.forward(input_vec)
+    print("if input is:\n{}\nthen, output is:\n{}".format(input_vec, output_vec))
 
 if __name__ == "__main__":
     test_DQN1Layer()
