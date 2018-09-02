@@ -5,6 +5,8 @@ import numpy as np
 from TwoDim.TwoDimMDP import TwoDimSparseMDPSimulator
 
 Transition = namedtuple('Transition', ('state', 'action', 'next_state', 'reward'))
+FilterSample = namedtuple('FilterSample', ('state', 'action', 'value'))
+
 
 def action_2d_2_letter(action):
     letter = None
@@ -71,5 +73,6 @@ def get_paper_mdp():
     terminal_states = [(shape[0]-1,shape[1]-1)]
     mdp = TwoDimSparseMDPSimulator(shape, noise_prob, rewards, random, start_states, terminal_states)
     return mdp
+
 
 mdp = get_paper_mdp()

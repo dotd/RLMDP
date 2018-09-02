@@ -7,7 +7,7 @@ np_random = np.random.RandomState(0)
 print("AAAAAAA")
 lr = 0.00001
 num_episodes = 5000
-noise = 0.2
+noise_prob = 0.2
 
 sizes = (10, 9)
 rewards = {(sizes[0]-1, sizes[1]-1): 100}
@@ -15,7 +15,7 @@ start_states = [(0, 0)]
 terminal_states = [key for key,value in rewards.items()]
 
 # Environment Definition
-env = TwoDimSparseMDPSimulator(shape=sizes, noise=noise, rewards=rewards, random=np_random, start_states=start_states,
+env = TwoDimSparseMDPSimulator(shape=sizes, noise_prob=noise_prob, rewards=rewards, random=np_random, start_states=start_states,
                                terminal_states=terminal_states)
 actions = env.get_actions_list()
 num_actions = len(actions)
