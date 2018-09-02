@@ -1,6 +1,5 @@
 from TwoDim.AgentBase import AgentBase
 import numpy as np
-from TwoDim.QLearning.StateActionTable import StateActionTable
 from collections import defaultdict
 
 
