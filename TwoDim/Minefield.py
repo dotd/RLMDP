@@ -7,6 +7,8 @@ import numpy as np
 class Minefield(Env):
     """
     Perhaps even inherit from GoalEnv?
+
+    Everything should be numpy arrays?
     """
     def __init__(self,
                  random_generator,
@@ -39,11 +41,11 @@ class Minefield(Env):
         self.minefield = self.gen_field(num_mines=num_mines)
         # Need to generate the mine field here below. Figure it out later.
 
-    def _step(self, input_action, debug=False):
+    def _step(self, input_action: np.ndarray, debug=False):
         """
         Apply given action, and return a new state and reward
-        :param input_action:
-        :return:
+        :param input_action: ndarray - input vec
+        :return: next state
         """
 
         # Take a random action with probability self.rand_action_prob
@@ -112,7 +114,7 @@ class Minefield(Env):
             self.minefield[tuple(candidate_locations[coord])] = 1
         return self.minefield
 
-    def compute_next_state(self, action, input_state=None):
+    def compute_next_state(self, input_state=None, action=None):
         """
         Return the next step, after applying the action. Corrects for boundary limitations
         :param input_state: Numpy array of coordinates

@@ -15,10 +15,10 @@ def run_main(mdp, agent, num_episodes, max_episode_len):
         mdp._reset()
         reward_vec = []
         for i in range(max_episode_len):
-            state = tuple(mdp.cur_state)
+            state = mdp.cur_state
+            # Action here is a tuple, meaning, the vector action of the environment
             action = agent.choose_action(state)
             next_state, reward, done, info = mdp._step(action)
-            next_state = tuple(next_state)
             reward_vec.append(reward)
             agent.update(state, action, reward, next_state)
             if done:

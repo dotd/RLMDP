@@ -375,6 +375,8 @@ def plot_durations():
 def optimize_model():
     if len(memory) < BATCH_SIZE:
         return
+    # The transitions type is list: [Transition(Tensor, Tensor, Tensor, Tensor), ...]
+    # Meaning, inside each transition everything is Tensors.
     transitions = memory.sample(BATCH_SIZE)
     # Transpose the batch (see http://stackoverflow.com/a/19343/3343043 for
     # detailed explanation).

@@ -37,7 +37,7 @@ class DQN1Layer(nn.Module):
         # x = x.view(x.size(0), self.len)
         x = self.W1(x)
         x = F.relu(x)
-        return x
+        return x.view(x.size(0), -1)
 
 
 def test_DQN1Layer():
@@ -52,6 +52,7 @@ def test_DQN1Layer():
     input_vec = torch.Tensor([[0.5, 1], [1, 2]])
     output_vec = dqn.forward(input_vec)
     print("if input is:\n{}\nthen, output is:\n{}".format(input_vec, output_vec))
+
 
 if __name__ == "__main__":
     test_DQN1Layer()
