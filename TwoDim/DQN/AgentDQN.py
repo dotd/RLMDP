@@ -22,9 +22,9 @@ class AgentDQN(AgentBase):
                  policy_net_parameters,
                  eps_greedy=0.1,
                  gamma=0.5,
-                 lr=0.0001,
-                 replay_memory_capacity=10,
-                 batch_size=5,
+                 lr=0.1,
+                 replay_memory_capacity=100,
+                 batch_size=55,
                  device="cpu"):
         self.states = dim_states
         self.actions = actions
