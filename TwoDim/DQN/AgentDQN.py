@@ -22,9 +22,9 @@ class AgentDQN(AgentBase):
                  policy_net_parameters,
                  eps_greedy=0.1,
                  gamma=0.5,
-                 lr=0.1,
-                 replay_memory_capacity=100,
-                 batch_size=50,
+                 lr=0.0001,
+                 replay_memory_capacity=10,
+                 batch_size=5,
                  device="cpu"):
         self.states = dim_states
         self.actions = actions
@@ -38,7 +38,7 @@ class AgentDQN(AgentBase):
         self.target_net = policy_net_class(**policy_net_parameters).to(self.device)
         self.target_net.load_state_dict(self.policy_net.state_dict())
         self.target_net.eval()
-        self.optimizer = optim.RMSprop(self.policy_net.parameters())
+        self.optimizer = optim.RMSprop(self.policy_net.parameters(), lr=lr)
 
         self.eps_greedy = eps_greedy
         self.gamma = gamma
@@ -47,6 +47,7 @@ class AgentDQN(AgentBase):
         self.batch_size = batch_size
         self.map_action_vec_to_action_idx = {}
         self.create_actions_map()
+        self.loss_vec = []
 
     def create_actions_map(self):
         """
@@ -138,15 +139,19 @@ class AgentDQN(AgentBase):
         next_maximal_q_value[non_final_mask] = next_q_values.max(1)[0].detach()
         # Compute the expected Q values
         expected_state_action_values = (next_maximal_q_value * self.gamma) + reward_batch
+        expected_state_action_values = expected_state_action_values.unsqueeze(1)
 
         # Compute Huber loss
-        loss = F.smooth_l1_loss(maximal_q_value, expected_state_action_values.unsqueeze(1))
+        loss = F.smooth_l1_loss(maximal_q_value, expected_state_action_values)
+        if loss.detach().numpy()>20000.5:
+            print("")
+        self.loss_vec.append(loss.detach().numpy())
 
         # Optimize the model
         self.optimizer.zero_grad()
         loss.backward()
         for param in self.policy_net.parameters():
-            param.grad.data.clamp_(-10, 10)
+            param.grad.data.clamp_(-1, 1)
         self.optimizer.step()
 
 
