@@ -27,10 +27,12 @@ class DQN1Layer(nn.Module):
         self.W1 = nn.Linear(self.dim_state, out_features=num_actions)
         if init_values is not None:
             if type(init_values) is dict:
+                # Given a dictionary, initializing according to the dict.
                 self.W1.weight.data = torch.Tensor(init_values["weight"])
                 self.W1.bias.data = torch.Tensor(init_values["bias"])
-            else:
-                self.W1.weight = nn.Parameter(torch.zeros(dim_state.item(), num_actions))
+            elif isinstance(init_values, str) and init_values.lower()=="zeros":
+                # Initialize to zeros.
+                self.W1.weight = nn.Parameter(torch.zeros(num_actions, dim_state.item()))
                 self.W1.bias = nn.Parameter(torch.zeros(num_actions))
 
     def forward(self, x):

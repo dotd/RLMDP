@@ -22,7 +22,7 @@ class AgentDQN(AgentBase):
                  policy_net_parameters,
                  eps_greedy=0,
                  gamma=0.5,
-                 lr=0.003,
+                 lr=0.001,
                  replay_memory_capacity=100,
                  batch_size=40):
 
