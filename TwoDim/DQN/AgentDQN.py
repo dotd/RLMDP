@@ -21,16 +21,16 @@ class AgentDQN(AgentBase):
                  policy_net_class,
                  policy_net_parameters,
                  eps_greedy=0.1,
-                 gamma=0.5,
-                 lr=0.1,
-                 replay_memory_capacity=100,
-                 batch_size=55,
-                 device="cpu"):
+                 gamma=0.7,
+                 lr=0.01,
+                 replay_memory_capacity=200,
+                 batch_size=40):
+
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.states = dim_states
         self.actions = actions
         self.random = random
         self.num_actions = len(actions)
-        self.device = device
 
         # network section
         # network should NOT be already instantiated. Only class pointer
