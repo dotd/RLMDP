@@ -1,5 +1,5 @@
 from abc import ABC, ABCMeta, abstractmethod
-
+import numpy as np
 
 class AgentBase(ABC):
     """
@@ -7,11 +7,11 @@ class AgentBase(ABC):
     """
 
     @abstractmethod
-    def choose_action(self, state):
+    def choose_action(self, state: np.ndarray):
         """
         This method is only for a given state to choose the next action
         :param state:
-        :return:
+        :return: action_idx, action_vec
         """
         pass
 

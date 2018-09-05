@@ -25,7 +25,7 @@ def action_2d_2_letter(action):
 
 class ReplayMemory(object):
 
-    def __init__(self, capacity, tuple_type = Transition):
+    def __init__(self, capacity, tuple_type=Transition):
         self.capacity = capacity
         self.memory = []
         self.position = 0
