@@ -40,6 +40,8 @@ class AgentQLearning(AgentBase):
         For a random agent we do nothing for updating.
         """
         # Updating the q-value
+        # if state_next is None:
+        #     return
         action_next = self.get_best_action(tuple(state_next))
         q_cur = self.q_table[(tuple(state), tuple(action))]
         q_next = self.q_table[(tuple(state_next), tuple(action_next))]
