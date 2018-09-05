@@ -20,10 +20,10 @@ class AgentDQN(AgentBase):
                  random,
                  policy_net_class,
                  policy_net_parameters,
-                 eps_greedy=0.1,
-                 gamma=0.7,
-                 lr=0.01,
-                 replay_memory_capacity=200,
+                 eps_greedy=0,
+                 gamma=0.5,
+                 lr=0.003,
+                 replay_memory_capacity=100,
                  batch_size=40):
 
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -158,13 +158,13 @@ class AgentDQN(AgentBase):
 def test_agent_dqn():
     print("Initializing parameters and classes")
     random = np.random.RandomState(142)
-    dim_states = 2
+    dim_states = 3
     actions = [0, 1] # number of actions is 2
 
     print("Init the policy_net and afterward the dqn")
     dqn_parameters = {"dim_state":dim_states,
                       "num_actions":len(actions),
-                      "init_values":{"weight":[[1, 0], [0, 1]], "bias": [0, 0]}}
+                      "init_values":{"weight":[[1, 0, 0], [0, 1, 0]], "bias": [0, 0]}}
     policy_net = DQN1Layer
     agent_dqn = AgentDQN(dim_states=dim_states,
                          actions=actions,

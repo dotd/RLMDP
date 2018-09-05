@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import numpy as np
 
 
 class DQN2Layers(nn.Module):
@@ -29,14 +30,14 @@ class DQN1Layer(nn.Module):
                 self.W1.weight.data = torch.Tensor(init_values["weight"])
                 self.W1.bias.data = torch.Tensor(init_values["bias"])
             else:
-                self.W1.weight = nn.Parameter(torch.zeros(dim_state, num_actions))
-                self.W1.bias = torch.nn.Parameter(torch.ones(dim_state))
+                self.W1.weight = nn.Parameter(torch.zeros(dim_state.item(), num_actions))
+                self.W1.bias = nn.Parameter(torch.zeros(num_actions))
 
     def forward(self, x):
         # flatten
         # x = x.view(x.size(0), self.len)
         x = self.W1(x)
-        x = F.relu(x)
+        x = F.tanh(x)
         return x.view(x.size(0), -1)
 
 
