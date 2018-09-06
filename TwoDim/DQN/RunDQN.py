@@ -75,16 +75,16 @@ def run_main(mdp, agent, num_episodes, max_episode_len):
         average_reward = np.sum(reward_vec) / (i + 1)
         episode_durations.append(average_reward)
 
-    episode_durations_smoothed = smooth_signal(episode_durations, window_smooth_len=50)
-    plt.figure(0)
-    plt.plot(episode_durations_smoothed)
-    plt.axhline(y=best_average_reward, xmin=0, xmax=num_episodes - 1)
-    plt.ylabel('results')
-    plt.show(block=True)
-    plt.pause(0.0001)
+        if num_episode % 20 == 0:
+            episode_durations_smoothed = smooth_signal(episode_durations, window_smooth_len=50)
+            plt.plot(episode_durations_smoothed)
+            plt.axhline(y=best_average_reward, xmin=0, xmax=num_episodes - 1)
+            plt.ylabel('results')
+            plt.show(block=False)
+            plt.pause(0.0001)
 
 
-def run_dqn(random_seed=142, shape=(5, 6), **kwargs):
+def run_dqn(random_seed=142, shape=(9, 10), **kwargs):
     # The seed for reproducibility
     random = np.random.RandomState(random_seed)
 
@@ -92,16 +92,20 @@ def run_dqn(random_seed=142, shape=(5, 6), **kwargs):
     mdp = Minefield(
         random_generator=random,
         shape=shape,
-        num_mines=0,
+        num_mines=5,
         start=np.array([np.array([0, 0], dtype=np.int)]),
         terminal_states=np.array(
             [np.array([shape[0] - 1, shape[1] - 1], dtype=np.int)]))  # Terminal state in the corner
 
     # The Agent
-    dqn_parameters = {"dim_state": np.prod(shape),
-                      "num_actions": len(mdp.action_space)}
+    X = np.prod(shape) # state space size
+    A = len(mdp.action_space) # action space size
 
-    agent = AgentDQN(dim_states=np.prod(shape),
+    dqn_parameters = {"dim_state": X,
+                      "num_actions": A,
+                      "init_values": "zeros"}
+
+    agent = AgentDQN(dim_states=X,
                      actions=mdp.action_space,
                      random=random,
                      policy_net_class=DQN1Layer,
@@ -117,4 +121,4 @@ def run_dqn(random_seed=142, shape=(5, 6), **kwargs):
 
 
 if __name__ == "__main__":
-    run_dqn(num_episodes=100, max_episode_len=200)
+    run_dqn(num_episodes=1500, max_episode_len=200)
