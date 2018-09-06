@@ -105,7 +105,6 @@ def run_dqn(random_seed=142, shape=(9, 10), **kwargs):
                       "num_actions": A,
                       "init_values": "zeros"}
 
-
     agent = AgentDQN(dim_states=X,
                      actions=mdp.action_space,
                      random=random,
