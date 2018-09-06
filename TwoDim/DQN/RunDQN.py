@@ -34,7 +34,7 @@ RunDQN is responsible for translating from one to the other.
 '''
 
 
-def run_main(mdp, agent, num_episodes, max_episode_len):
+def run_coordinator(mdp, agent, num_episodes, max_episode_len):
     """
 
     :param mdp:
@@ -84,8 +84,18 @@ def run_main(mdp, agent, num_episodes, max_episode_len):
             plt.pause(0.0001)
 
 
-def run_dqn(random_seed=142, shape=(9, 10), **kwargs):
+def run_minefield(**kwargs):
     # The seed for reproducibility
+    num_episodes = kwargs.get("num_episodes")
+    max_episode_len = kwargs.get("max_episode_len")
+    random_seed = kwargs.get("random_seed")
+    shape = kwargs.get("shape")
+    eps_greedy = kwargs.get("eps_greedy")
+    gamma = kwargs.get("gamma")
+    lr = kwargs.get("lr")
+    replay_memory_capacity = kwargs.get("replay_memory_capacity")
+    batch_size = kwargs.get("batch_size")
+    agent_class = kwargs.get("agent_class")
     random = np.random.RandomState(random_seed)
 
     # The MDP
@@ -105,20 +115,33 @@ def run_dqn(random_seed=142, shape=(9, 10), **kwargs):
                       "num_actions": A,
                       "init_values": "zeros"}
 
-    agent = AgentDQN(dim_states=X,
-                     actions=mdp.action_space,
-                     random=random,
-                     policy_net_class=DQN1Layer,
-                     policy_net_parameters=dqn_parameters)
+    agent = agent_class(dim_states=X,
+                        actions=mdp.action_space,
+                        random=random,
+                        policy_net_class=DQN1Layer,
+                        policy_net_parameters=dqn_parameters,
+                        eps_greedy=eps_greedy,
+                        gamma=gamma,
+                        lr=lr,
+                        replay_memory_capacity=replay_memory_capacity,
+                        batch_size=batch_size)
 
     # running it.
-    num_episodes = kwargs.get("num_episodes")
-    max_episode_len = kwargs.get("max_episode_len")
-    run_main(mdp, agent, num_episodes, max_episode_len)
+    run_coordinator(mdp, agent, num_episodes, max_episode_len)
     plt.figure(2)
     plt.plot(agent.loss_vec)
     plt.show(block=True)
 
 
 if __name__ == "__main__":
-    run_dqn(num_episodes=1500, max_episode_len=200)
+    run_minefield(num_episodes=500,
+                  max_episode_len=200,
+                  random_seed=142,
+                  shape=(9, 10),
+                  eps_greedy=0,
+                  gamma=0.5,
+                  lr=0.001,
+                  replay_memory_capacity=100,
+                  batch_size=40,
+                  agent_class=AgentDQN
+                  )
