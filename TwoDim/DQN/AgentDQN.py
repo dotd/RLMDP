@@ -98,8 +98,13 @@ class AgentDQN(AgentBase):
         next_state:
         """
 
+        state_full_torch = torch.Tensor([state])  # state_full
+        action_torch = torch.LongTensor([[action]])  # action_idx
+        reward_torch = torch.Tensor([reward])  # reward
+        next_state_full_torch = torch.Tensor([state_next]) if state_next is not None else None  # next_state_full
+
         # We push into the replay torch.Tensors. To be comply with the pytorch tutorial on RL
-        self.replay_memory.push(state, action, state_next, reward)
+        self.replay_memory.push(state_full_torch, action_torch, next_state_full_torch, reward_torch)
         self.optimize_model()
 
     def optimize_model(self):

@@ -41,7 +41,7 @@ class Minefield(Env):
         self.minefield = self.gen_field(num_mines=num_mines)
         # Need to generate the mine field here below. Figure it out later.
 
-    def _step(self, input_action: np.ndarray, debug=False):
+    def step(self, input_action: np.ndarray, debug=False):
         """
         Apply given action, and return a new state and reward
         :param input_action: ndarray - input vec
@@ -69,13 +69,13 @@ class Minefield(Env):
         info = {"random_step":random_step}
         return self.cur_state, reward, done, info
 
-    def _reset(self):
+    def reset(self):
         self.cur_state = self.get_random_start_state()
 
-    def _render(self, mode='human', close=False):
+    def render(self, mode='human', close=False):
         return self.minefield
 
-    def _seed(self, seed=42):
+    def seed(self, seed=42):
         """
         Returns the environment's random number genreator
         :param seed:
@@ -136,6 +136,9 @@ class Minefield(Env):
         :return:
         """
         return np.unique([self.compute_next_state(input_state, action) for action in self.action_space], axis=0)
+
+    def close(self):
+        pass
 
     def __str__(self):
         lines = []

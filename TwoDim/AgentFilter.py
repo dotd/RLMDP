@@ -7,7 +7,7 @@ from TwoDim.TwoDimUtils import ReplayMemory
 from TwoDim.TwoDimUtils import Transition
 from TwoDim.TwoDimUtils import FilterSample
 
-from Filters.OnlineUtils import OnlineFilter2
+from Filters.OnlineUtils import OnlineFilter
 
 import random
 import math
@@ -40,7 +40,7 @@ class AgentFilter():
         # Filter section
         filter_in = kwargs.get("filter_in",[1] * 3)
         sampler_len = kwargs.get("sampler_len",1)
-        self.online_filter = OnlineFilter2(filter_in, sampler_len=sampler_len)
+        self.online_filter = OnlineFilter(filter_in, sampler_len=sampler_len)
 
         # Checking conditions.
         if self.BATCH_SIZE > self.memory_replay_len or self.BATCH_SIZE>self.filter_replay_len:
