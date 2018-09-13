@@ -20,7 +20,7 @@ class AgentDQN(AgentBase):
                  random,
                  policy_net_class,
                  policy_net_parameters,
-                 eps_greedy=0,
+                 eps_greedy=0.10,
                  gamma=0.5,
                  lr=0.001,
                  replay_memory_capacity=100,
@@ -108,6 +108,9 @@ class AgentDQN(AgentBase):
         transitions = self.replay_memory.sample(self.batch_size)
         self.optimize_model_transitions(transitions)
 
+    def get_policy_matrix(self):
+        m = np.zeros(self.)
+
     def optimize_model_transitions(self, transitions):
         # Transpose the batch (see http://stackoverflow.com/a/19343/3343043 for
         # detailed explanation).
@@ -154,6 +157,8 @@ class AgentDQN(AgentBase):
             param.grad.data.clamp_(-1, 1)
         self.optimizer.step()
 
+    def get_q_values(self, state_tensors):
+        return self.policy_net(state_tensors)
 
 def test_agent_dqn():
     print("Initializing parameters and classes")

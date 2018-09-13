@@ -142,6 +142,15 @@ class Minefield(Env):
         lines.append("dim={}".format(self.dim))
         lines.append("shape={}".format(self.shape))
 
+    def get_field_matrix(self):
+        return self.minefield
+
+    def get_all_states(self):
+        """
+
+        :return: a list of all coordinates on the board
+        """
+        return list(product(*[range(dim) for dim in self.minefield.shape]))
 
 
 if __name__ == "__main__":

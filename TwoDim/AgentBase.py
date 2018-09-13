@@ -27,4 +27,10 @@ class AgentBase(ABC):
         """
         pass
 
+    @abstractmethod
+    def get_policy_matrix(self):
+        """
+        :return: a height x width x num_actions dimensional matrix describing the Agent's policy
+        """
+
 

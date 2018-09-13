@@ -1,10 +1,13 @@
+from typing import List
+
+import matplotlib.pyplot as plt
+import numpy as np
+from gym import Env
+
 from TwoDim.Minefield import Minefield
 from TwoDim.DQN.AgentDQN import AgentDQN
-import matplotlib.pyplot as plt
 from TwoDim.TwoDimUtils import *
-import numpy as np
 from TwoDim.DQN.Nets import DQN1Layer
-from typing import List
 
 
 def compact2full(state: np.ndarray, shape: List) -> np.ndarray:
@@ -32,7 +35,6 @@ The environment is dealing with tuples for states and actions
 The agent is dealing *only* with Tensors.
 RunDQN is responsible for translating from one to the other. 
 '''
-
 
 def run_main(mdp, agent, num_episodes, max_episode_len):
     """
@@ -105,7 +107,6 @@ def run_dqn(random_seed=142, shape=(9, 10), **kwargs):
                       "num_actions": A,
                       "init_values": "zeros"}
 
-
     agent = AgentDQN(dim_states=X,
                      actions=mdp.action_space,
                      random=random,
@@ -121,5 +122,12 @@ def run_dqn(random_seed=142, shape=(9, 10), **kwargs):
     plt.show(block=True)
 
 
+def run_policy_evaluation(agent: AgentDQN, mdp: Minefield):
+    compact_states_list = mdp.get_all_states()
+    full_state_tensors = torch.Tensor(compact2full(compact_states_list, mdp.shape))
+    q_values = agent.get_q_values(full_state_tensors)
+    return compact_states_list, q_values
+
 if __name__ == "__main__":
-    run_dqn(num_episodes=1500, max_episode_len=200)
+    shape = np.array([64, 53])
+    run_dqn(shape=shape, num_episodes=1500, max_episode_len=200)
