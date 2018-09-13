@@ -65,10 +65,6 @@ def run_coordinator(mdp, agent, num_episodes, max_episode_len):
 
             # It is a numpy array. We should have a Torch array in this implementation
             # TODO: Move PyTorch code into the agent
-            #state_full_torch = torch.Tensor([state_full])
-            #action_torch = torch.LongTensor([[action_idx]])
-            #reward_torch = torch.Tensor([reward])
-            #next_state_full_torch = torch.Tensor([next_state_full]) if not done else None
             agent.update(state_full, action_idx, reward, next_state_full)
             if done:
                 break

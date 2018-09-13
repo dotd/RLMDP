@@ -32,6 +32,7 @@ class FourInARow(Env):
         self.board[next_free_spot_row, action_column] = self.current_player
         is_winner = self.check_winner(next_free_spot_row, action_column)
         self.current_player = -self.current_player
+        # TODO next_state, reward, done, info
         return is_winner
 
     def get_next_free_spot_raw(self, column_idx):

@@ -8,17 +8,6 @@ from FourInARow.FourInARow import FourInARow
 
 
 def run_coordinator(mdp, agent, num_episodes, max_episode_len):
-    """
-
-    :param mdp:
-    :param agent:
-    :param num_episodes:
-    :param max_episode_len:
-    :return:
-    """
-    episode_durations = []
-    shortest_path = sum(mdp.shape) - len(mdp.shape)
-    best_average_reward = (mdp.reach_reward - shortest_path) / shortest_path
 
     for num_episode in range(num_episodes):
         print("num_episode={}".format(num_episode))
@@ -45,16 +34,6 @@ def run_coordinator(mdp, agent, num_episodes, max_episode_len):
             agent.update(state_full_torch, action_torch, reward_torch, next_state_full_torch)
             if done:
                 break
-        average_reward = np.sum(reward_vec) / (i + 1)
-        episode_durations.append(average_reward)
-
-        if num_episode % 20 == 0:
-            episode_durations_smoothed = smooth_signal(episode_durations, window_smooth_len=50)
-            plt.plot(episode_durations_smoothed)
-            plt.axhline(y=best_average_reward, xmin=0, xmax=num_episodes - 1)
-            plt.ylabel('results')
-            plt.show(block=False)
-            plt.pause(0.0001)
 
 
 def run_four_in_a_raw(**kwargs):
@@ -108,9 +87,6 @@ def run_four_in_a_raw(**kwargs):
 
     # running it.
     run_coordinator(mdp, agents, num_episodes, max_episode_len)
-    plt.figure(2)
-    plt.plot(agent.loss_vec)
-    plt.show(block=True)
 
 
 if __name__ == "__main__":

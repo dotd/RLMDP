@@ -30,10 +30,15 @@ class AgentDQNRisk(AgentDQN):
                          batch_size)
         self.risk_horizon = risk_horizon
         self.risk_function = risk_function
-        self.online_filter = OnlineFilter(self.risk_horizon)
+        filter0 = get_exponential_filter(1.0, self.risk_horizon)
+        self.online_filter = OnlineFilter(filter0)
 
     def update(self, state, action, reward, state_next):
         # We begin with the standard DQN
         super().update(state, action, reward, state_next)
+        current_result = self.online_filter.add(reward, state)
+        if current_result is not None:
+            value = current_result[0]
+            current_risk = self.risk_function(value)
 
-        # self.online_filter =
+
