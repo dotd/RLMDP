@@ -20,11 +20,11 @@ class AgentDQN(AgentBase):
                  random,
                  policy_net_class,
                  policy_net_parameters,
-                 eps_greedy=0,
-                 gamma=0.5,
-                 lr=0.001,
-                 replay_memory_capacity=100,
-                 batch_size=40):
+                 eps_greedy,
+                 gamma,
+                 lr,
+                 replay_memory_capacity,
+                 batch_size):
 
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.states = dim_states
@@ -98,8 +98,13 @@ class AgentDQN(AgentBase):
         next_state:
         """
 
+        state_full_torch = torch.Tensor([state])  # state_full
+        action_torch = torch.LongTensor([[action]])  # action_idx
+        reward_torch = torch.Tensor([reward])  # reward
+        next_state_full_torch = torch.Tensor([state_next]) if state_next is not None else None  # next_state_full
+
         # We push into the replay torch.Tensors. To be comply with the pytorch tutorial on RL
-        self.replay_memory.push(state, action, state_next, reward)
+        self.replay_memory.push(state_full_torch, action_torch, next_state_full_torch, reward_torch)
         self.optimize_model()
 
     def optimize_model(self):
@@ -142,9 +147,10 @@ class AgentDQN(AgentBase):
         expected_state_action_values = expected_state_action_values.unsqueeze(1)
 
         # Compute Huber loss
-        loss = F.smooth_l1_loss(maximal_q_value, expected_state_action_values)
-        if loss.detach().numpy()>20000.5:
-            print("")
+        # lhs_loss is moving all the arguments of the loss to the lhs.
+        # In order to maintain the loss the same, on the rhs we put zeros in the same size as lhs.
+        lhs_loss = maximal_q_value - expected_state_action_values
+        loss = F.smooth_l1_loss(lhs_loss, torch.zeros_like(lhs_loss))
         self.loss_vec.append(loss.detach().numpy())
 
         # Optimize the model
@@ -155,25 +161,5 @@ class AgentDQN(AgentBase):
         self.optimizer.step()
 
 
-def test_agent_dqn():
-    print("Initializing parameters and classes")
-    random = np.random.RandomState(142)
-    dim_states = 3
-    actions = [0, 1] # number of actions is 2
-
-    print("Init the policy_net and afterward the dqn")
-    dqn_parameters = {"dim_state":dim_states,
-                      "num_actions":len(actions),
-                      "init_values":{"weight":[[1, 0, 0], [0, 1, 0]], "bias": [0, 0]}}
-    policy_net = DQN1Layer
-    agent_dqn = AgentDQN(dim_states=dim_states,
-                         actions=actions,
-                         policy_net_class=policy_net,
-                         policy_net_parameters=dqn_parameters,
-                         random=random,
-                         batch_size=1,
-                         replay_memory_capacity=1)
-
-
 if __name__ == "__main__":
-    test_agent_dqn()
+    pass

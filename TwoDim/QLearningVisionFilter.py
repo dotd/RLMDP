@@ -9,7 +9,7 @@ import torch.nn.functional as F
 from TwoDim.TwoDimMDP import TwoDimSparseMDPSimulator
 from TwoDim.TwoDimUtils import *
 from TwoDim.Nets import DQN2
-from Filters.OnlineUtils import OnlineFilter2
+from Filters.OnlineUtils import OnlineFilter
 
 ########### ENVIRONMENT #################
 
