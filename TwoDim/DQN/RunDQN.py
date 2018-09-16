@@ -1,10 +1,11 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from typing import List
+
 from TwoDim.Minefield import Minefield
 from TwoDim.DQN.AgentDQN import AgentDQN
-import matplotlib.pyplot as plt
 from TwoDim.TwoDimUtils import *
-import numpy as np
 from TwoDim.DQN.Nets import DQN1Layer
-from typing import List
 
 
 def compact2full(state: np.ndarray, shape: List) -> np.ndarray:

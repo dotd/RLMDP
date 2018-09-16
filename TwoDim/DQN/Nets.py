@@ -21,7 +21,7 @@ class DQN2Layers(nn.Module):
 
 
 class DQN1Layer(nn.Module):
-    def __init__(self, dim_state, num_actions, init_values=None):
+    def __init__(self, dim_state, num_actions, init_values=None, output_activation=F.tanh):
         super(DQN1Layer, self).__init__()
         self.dim_state = dim_state
         self.W1 = nn.Linear(self.dim_state, out_features=num_actions)
@@ -34,28 +34,12 @@ class DQN1Layer(nn.Module):
                 # Initialize to zeros.
                 self.W1.weight = nn.Parameter(torch.zeros(num_actions, dim_state.item()))
                 self.W1.bias = nn.Parameter(torch.zeros(num_actions))
+        self.output_activation = output_activation
 
     def forward(self, x):
         # flatten
         # x = x.view(x.size(0), self.len)
         x = self.W1(x)
-        x = F.tanh(x)
+        x = self.output_activation(x)
         return x.view(x.size(0), -1)
 
-
-def test_DQN1Layer():
-    dqn = DQN1Layer(dim_state=2, num_actions=2, init_values=True)
-    print("Weights are:\n{}".format(dqn.W1.weight))
-    print("Bias is:\n{}".format(dqn.W1.bias))
-
-    dqn = DQN1Layer(dim_state=2, num_actions=2, init_values={"weight": [[0, 1], [2, 3]], "bias": [-4, -5]})
-    print("Weights are:\n{}".format(dqn.W1.weight))
-    print("Bias is:\n{}".format(dqn.W1.bias))
-
-    input_vec = torch.Tensor([[0.5, 1], [1, 2]])
-    output_vec = dqn.forward(input_vec)
-    print("if input is:\n{}\nthen, output is:\n{}".format(input_vec, output_vec))
-
-
-if __name__ == "__main__":
-    test_DQN1Layer()

@@ -3,6 +3,7 @@ import Policies
 import Utils
 from collections import Counter
 
+
 def get_MRP(mdp, mu):
     P = np.zeros((mdp.X,mdp.X))
     for x in range(mdp.X):
@@ -11,6 +12,7 @@ def get_MRP(mdp, mu):
     R = Utils.ThreeDVec2OneDVec(mdp.R,mdp.P, mu)
     R_std = Utils.ThreeDVec2OneDVec(mdp.R_std, mdp.P, mu)
     return P, R, R_std
+
 
 def get_J(P, R, gamma):
     J = np.dot(np.linalg.inv(np.identity(P.shape[0]) - gamma * P), R)
@@ -51,6 +53,7 @@ def get_J_as_MC_raw(trajectory, gamma, X = None, func = lambda x: x):
     J = values/times
     return J
 
+
 def get_discount_factor_as_filter(gamma, filt_len):
     # this function doesn't flit the filter
     filt = np.zeros((filt_len,))
@@ -58,6 +61,7 @@ def get_discount_factor_as_filter(gamma, filt_len):
     for k in range(1,filt_len):
         filt[k] = filt[k-1]*gamma
     return filt
+
 
 def get_J_as_MC_filter(trajectory, gamma, X=None, filt_len = 40, func = lambda x: x, info=False):
     # The trajectory is x,u,r
@@ -115,12 +119,14 @@ def get_B_moments_by_filter(X, x_traj, r_traj, filter_orig, moment_func = lambda
 
     return S
 
+
 def hist_list(lst, X):
     z = Counter(lst)
     hist = [0] * X
     for key, val in z.items():
         hist[key]=val
     return hist
+
 
 def get_J_as_TD(trajectory, gamma, X, alpha):
     '''
@@ -142,7 +148,7 @@ def get_exact_J_LSTD(phi, P, gamma, r):
     w = np.linalg.solve(A, b)
     return w
 
-def get_V_by_J_M(J,M):
+def get_V_by_J_M(J, M):
     return M - J*J
 
 def get_simulation_J_LSTD(phi, trajectory, gamma):

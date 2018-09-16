@@ -106,17 +106,19 @@ class MDP:
         else:
             return self.basis[self.cur_state]
 
-def get_R_M2(P, R, R_std, gamma, J):
-    R_M2 = R*R + R_std * R_std + 2* gamma * R * (np.dot(P,J))
+def get_M2_as_reward(P, R, R_std, gamma, J):
+    R_M2 = R*R + R_std * R_std + 2* gamma * R * (np.dot(P, J))
     return R_M2
 
 def get_R_V(P, R, R_std, gamma, J, moment_func):
     #Jy =  np.dot(P,J)
     #R_V = np.dot(P,moment_func(J - Jy ))  #+ moment_func(R_std)
-    R_V = np.dot(P,moment_func(R + np.dot(P,J))) - moment_func(J)
+    R_V = np.dot(P, moment_func(R + np.dot(P, J))) - moment_func(J)
     return R_V
 
 def get_R_as_V_minus(P, R, gamma, J, moment_func = lambda x:x*x):
+    # Computing the following for "reward" of the variance:
+    # E[J(y)^2|x] - E[J(y)|x]^2
     MT1 = np.dot(P, moment_func(J))
     MT2 = moment_func(np.dot(P,J))
     return moment_func(gamma) * (MT1-MT2)

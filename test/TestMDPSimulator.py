@@ -4,7 +4,7 @@ import SpecificMDPs
 import Policies
 import numpy as np
 import time
-from Filters.OnlineUtils import ComputeBasicStats
+#from Filters.OnlineUtils import ComputeBasicStats
 import Utils
 
 # The MDP itself
@@ -31,7 +31,7 @@ print("J_exact={}".format(Utils.show_numpy_vector_nicely(J_exact)))
 print("Elapsed since last time: {}".format(time.time() - start))
 print("\n")
 
-R_M2 = MDP.get_R_M2(P, R, R_std, gamma, J_exact)
+R_M2 = MDP.get_M2_as_reward(P, R, R_std, gamma, J_exact)
 start = time.time()
 M2_exact = MDPSolver.get_J(P, R_M2, gamma**2)
 print("M2_exact={}".format(Utils.show_numpy_vector_nicely(M2_exact)))
@@ -121,18 +121,18 @@ JL1_exact_direct = MDPSolver.get_J(P, R_L1_exact, gamma)
 filter = MDPSolver.get_discount_factor_as_filter(gamma, filt_len = 40)
 V_sample = MDPSolver.get_B_moments_by_filter(mdp.X, x, r, filter, moment_func = lambda x: x*x, reward_func = lambda x: x)
 special_func = lambda x: abs(x) ** 1
-cbs = ComputeBasicStats(X=mdp.X, filter=filter, moments_funcs=[lambda x: x*x, special_func])
-cbs.add_vecs(x,r)
+#cbs = ComputeBasicStats(X=mdp.X, filter=filter, moments_funcs=[lambda x: x*x, special_func])
+#cbs.add_vecs(x,r)
 
 print("V_exact_by_M_J={}".format(Utils.show_numpy_vector_nicely(V_exact_by_M_J)))
 print("V_exact_direct={}".format(Utils.show_numpy_vector_nicely(V_exact_direct)))
 print("V_sample={}".format(Utils.show_numpy_vector_nicely(V_sample)))
-result_cbs = cbs.get()
-print("V_online={}".format(Utils.show_numpy_vector_nicely([result_cbs[x][1] for x in range(mdp.X)])))
+#result_cbs = cbs.get()
+#print("V_online={}".format(Utils.show_numpy_vector_nicely([result_cbs[x][1] for x in range(mdp.X)])))
 print("\n")
 print("Comparing the J for the online:")
 print("J_exact={}".format(Utils.show_numpy_vector_nicely(J_exact)))
-print("J_online={}".format(Utils.show_numpy_vector_nicely([result_cbs[x][0] for x in range(mdp.X)])))
+#print("J_online={}".format(Utils.show_numpy_vector_nicely([result_cbs[x][0] for x in range(mdp.X)])))
 print("J_MC_filt={}".format(Utils.show_numpy_vector_nicely(J_MC_filt)))
 print("\n")
 print("doing experiment with L1 moment")
@@ -140,7 +140,7 @@ R_S1_exact = MDP.get_R_V(P, R, R_std, gamma, J_exact, moment_func=special_func)
 S1_exact_direct = MDPSolver.get_J(P, R_S1_exact, gamma)
 print("S1_exact_direct={}".format(Utils.show_numpy_vector_nicely(S1_exact_direct)))
 # getting the result from cbs which is simulator direct
-print("S_online={}".format(Utils.show_numpy_vector_nicely([result_cbs[x][2] for x in range(mdp.X)])))
+#print("S_online={}".format(Utils.show_numpy_vector_nicely([result_cbs[x][2] for x in range(mdp.X)])))
 print("L1_exact={}".format(Utils.show_numpy_vector_nicely(JL1_exact_direct)))
 print("R_L1_exact={}".format(Utils.show_numpy_vector_nicely(R_L1_exact)))
 R_L1_exact
