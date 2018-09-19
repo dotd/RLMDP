@@ -15,8 +15,6 @@ right
 
 
 def show_policy(policy, x_scale=1, y_scale=1, x=None, y=None):
-    plt.figure()
-
     for entry in policy:
         center_x = entry["x"] * x_scale
         center_y = entry["y"] * y_scale
@@ -33,7 +31,6 @@ def show_policy(policy, x_scale=1, y_scale=1, x=None, y=None):
         plt.plot([center_x - x_scale / 2, center_x + x_scale / 2], [center_y + y_scale / 2, center_y + y_scale / 2], color="black")
         plt.plot([center_x - x_scale / 2, center_x - x_scale / 2], [center_y - y_scale / 2, center_y + y_scale / 2], color="black")
         plt.plot([center_x + x_scale / 2, center_x + x_scale / 2], [center_y - y_scale / 2, center_y + y_scale / 2], color="black")
-    plt.show()
 
 
 def show_minefield(mdp, agent):

@@ -55,14 +55,17 @@ def run_coordinator_pg(mdp, agent, num_episodes, max_episode_len):
         average_reward = np.sum(reward_vec) / (i + 1)
         episode_durations.append(average_reward)
 
-        if num_episode % 20 == 0:
+        if num_episode % 50 == 0:
             episode_durations_smoothed = smooth_signal(episode_durations, window_smooth_len=100)
+            plt.subplot(2,1,1)
             plt.plot(episode_durations_smoothed)
             plt.axhline(y=best_average_reward, xmin=0, xmax=num_episodes - 1)
             plt.ylabel('results')
+            aa = plt.subplot(2, 1, 2)
+            aa.cla()
+            show_minefield(mdp, agent)
             plt.show(block=False)
             plt.pause(0.0001)
-    show_minefield(mdp, agent)
 
 
 def run_minefield_pg(**kwargs):
