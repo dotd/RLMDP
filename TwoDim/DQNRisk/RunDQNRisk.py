@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from TwoDim.DQN.RunDQN import run_minefield, run_coordinator
+from TwoDim.DQN.RunDQN import run_minefield_dqn, run_coordinator
 from TwoDim.DQN.Nets import DQN1Layer
 from TwoDim.DQNRisk.AgentDQNRisk import AgentDQNRisk
 from TwoDim.Minefield import Minefield
@@ -57,14 +57,14 @@ def run_minefield_risk(**kwargs):
 
 
 if __name__ == "__main__":
-    run_minefield(num_episodes=500,
-                  max_episode_len=200,
-                  random_seed=142,
-                  shape=(9, 10),
-                  eps_greedy=0,
-                  gamma=0.5,
-                  lr=0.001,
-                  replay_memory_capacity=100,
-                  batch_size=40,
-                  agent_class=AgentDQNRisk
-                  )
+    run_minefield_dqn(num_episodes=500,
+                      max_episode_len=200,
+                      random_seed=142,
+                      shape=(9, 10),
+                      eps_greedy=0,
+                      gamma=0.5,
+                      lr=0.001,
+                      replay_memory_capacity=100,
+                      batch_size=40,
+                      agent_class=AgentDQNRisk
+                      )

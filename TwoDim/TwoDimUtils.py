@@ -6,6 +6,7 @@ from TwoDim.TwoDimMDP import TwoDimSparseMDPSimulator
 
 Transition = namedtuple('Transition', ('state', 'action', 'next_state', 'reward'))
 FilterSample = namedtuple('FilterSample', ('state', 'action', 'value'))
+PolicyGradientSample = namedtuple('PolicyGradientSample', ('likelihood', 'reward_func'))
 
 
 def action_2d_2_letter(action):

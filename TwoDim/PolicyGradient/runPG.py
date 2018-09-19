@@ -1,29 +1,11 @@
 import matplotlib.pyplot as plt
-from typing import List
+import numpy as np
 
 from TwoDim.Minefield import Minefield
-from TwoDim.DQN.AgentDQN import AgentDQN
-from TwoDim.TwoDimUtils import *
-from TwoDim.DQN.Nets import DQN1Layer
-
-
-def compact2full(state: np.ndarray, shape: List) -> np.ndarray:
-
-    # The single state case. state is a 1d Numpy array
-    if len(state.shape) == 1:
-        state_full = np.zeros(shape)
-        state_full[state[0]][state[1]] = 1
-        state_full = state_full.flatten()
-        return state_full
-
-    # The batch of states case. A 2d Numpy array
-    outdim = np.prod(shape)
-    mat = np.zeros(shape=(state.shape[0], outdim))
-    for i in range(state.shape[0]):
-        state_full = np.zeros(shape)
-        state_full[state[i][0]][state[i][1]] = 1
-        mat[i] = state_full.flatten()
-    return mat
+from TwoDim.PolicyGradient.AgentPolicyGradient import AgentPG
+from TwoDim.TwoDimUtils import smooth_signal
+from TwoDim.DQN.Nets import PG1Layer
+from TwoDim.DQN.RunDQN import compact2full
 
 
 '''
@@ -34,7 +16,7 @@ RunDQN is responsible for translating from one to the other.
 '''
 
 
-def run_coordinator(mdp, agent, num_episodes, max_episode_len):
+def run_coordinator_pg(mdp, agent, num_episodes, max_episode_len):
     """
 
     :param mdp:
@@ -52,12 +34,13 @@ def run_coordinator(mdp, agent, num_episodes, max_episode_len):
         mdp.reset()
         reward_vec = []
         for i in range(max_episode_len):
+            print("i={}".format(i))
             # Get the state as numpy. Making a full representation from it
             # and transform it to torch (agent is in torch)
             state: np.ndarray = mdp.cur_state
             state_full: np.ndarray = compact2full(state, mdp.shape)
 
-            action_idx, action = agent.choose_action(state_full)
+            action_idx, action, categorical = agent.choose_action(state_full)
             next_state, reward, done, info = mdp.step(action)
 
             next_state_full = compact2full(next_state, mdp.shape) if not done else None
@@ -68,6 +51,9 @@ def run_coordinator(mdp, agent, num_episodes, max_episode_len):
             agent.update(state_full, action_idx, reward, next_state_full)
             if done:
                 break
+        print("episode lenght={}".format(i))
+
+        agent.update_policy()
         average_reward = np.sum(reward_vec) / (i + 1)
         episode_durations.append(average_reward)
 
@@ -80,7 +66,7 @@ def run_coordinator(mdp, agent, num_episodes, max_episode_len):
             plt.pause(0.0001)
 
 
-def run_minefield_dqn(**kwargs):
+def run_minefield_pg(**kwargs):
     # The seed for reproducibility
     num_episodes = kwargs.get("num_episodes")
     max_episode_len = kwargs.get("max_episode_len")
@@ -89,16 +75,16 @@ def run_minefield_dqn(**kwargs):
     eps_greedy = kwargs.get("eps_greedy")
     gamma = kwargs.get("gamma")
     lr = kwargs.get("lr")
-    replay_memory_capacity = kwargs.get("replay_memory_capacity")
     batch_size = kwargs.get("batch_size")
     agent_class = kwargs.get("agent_class")
+    policy_net_class = kwargs.get("policy_net_class")
     random = np.random.RandomState(random_seed)
 
     # The MDP
     mdp = Minefield(
         random_generator=random,
         shape=shape,
-        num_mines=5,
+        num_mines=0,
         start=np.array([np.array([0, 0], dtype=np.int)]),
         terminal_states=np.array(
             [np.array([shape[0] - 1, shape[1] - 1], dtype=np.int)]))  # Terminal state in the corner
@@ -114,30 +100,23 @@ def run_minefield_dqn(**kwargs):
     agent = agent_class(dim_states=X,
                         actions=mdp.action_space,
                         random=random,
-                        policy_net_class=DQN1Layer,
+                        policy_net_class=policy_net_class,
                         policy_net_parameters=dqn_parameters,
-                        eps_greedy=eps_greedy,
                         gamma=gamma,
-                        lr=lr,
-                        replay_memory_capacity=replay_memory_capacity,
-                        batch_size=batch_size)
+                        lr=lr)
 
     # running it.
-    run_coordinator(mdp, agent, num_episodes, max_episode_len)
-    plt.figure(2)
-    plt.plot(agent.loss_vec)
-    plt.show(block=True)
+    run_coordinator_pg(mdp, agent, num_episodes, max_episode_len)
 
 
 if __name__ == "__main__":
-    run_minefield_dqn(num_episodes=2000,
-                      max_episode_len=200,
-                      random_seed=142,
-                      shape=(9, 10),
-                      eps_greedy=0,
-                      gamma=0.9,
-                      lr=0.0007,
-                      replay_memory_capacity=100,
-                      batch_size=40,
-                      agent_class=AgentDQN
-                      )
+    run_minefield_pg(num_episodes=2000,
+                     max_episode_len=200,
+                     random_seed=142,
+                     shape=(4, 5),
+                     gamma=0.9,
+                     lr=0.01,
+                     batch_size=40,
+                     agent_class=AgentPG,
+                     policy_net_class=PG1Layer
+                    )

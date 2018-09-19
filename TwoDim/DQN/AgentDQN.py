@@ -1,9 +1,8 @@
 import torch
 import torch.optim as optim
 import torch.nn.functional as F
+
 from TwoDim.AgentBase import AgentBase
-import numpy as np
-from TwoDim.DQN.Nets import DQN1Layer
 from TwoDim.TwoDimUtils import ReplayMemory
 from TwoDim.TwoDimUtils import Transition
 

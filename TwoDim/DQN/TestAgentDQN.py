@@ -1,5 +1,6 @@
 import unittest
 import numpy as np
+
 from TwoDim.Minefield import Minefield
 from TwoDim.DQN.AgentDQN import AgentDQN
 from TwoDim.DQN.Nets import DQN1Layer
