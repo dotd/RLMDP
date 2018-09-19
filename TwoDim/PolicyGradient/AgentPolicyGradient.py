@@ -46,7 +46,7 @@ class AgentPG:
     def choose_action(self, state_cur):
         '''
         Compute the best action according to the NN
-        :param state_cur: np.ndarray of the state
+        :param state_cur: np.ndarray of the state. should be in the dimension on the input
         :return: int, np.ndarray - action index (int) and action vector (np.ndarray)
         '''
         # Select an action (0 or 1) by running policy model and choosing based on the probabilities in state
@@ -99,3 +99,8 @@ class AgentPG:
 
     def update(self, state_full, action_idx, reward, next_state_full):
         self.reward_episode.append(reward)
+
+    def get_policy_probabilities(self, states):
+        state_torch = torch.from_numpy(states).type(torch.FloatTensor)
+        state_torch = self.policy_net(Variable(state_torch))
+        return state_torch

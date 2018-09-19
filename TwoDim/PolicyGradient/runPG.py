@@ -1,24 +1,16 @@
-import matplotlib.pyplot as plt
 import numpy as np
+import matplotlib.pyplot as plt
 
 from TwoDim.Minefield import Minefield
+from TwoDim.MineUtils import show_minefield
 from TwoDim.PolicyGradient.AgentPolicyGradient import AgentPG
 from TwoDim.TwoDimUtils import smooth_signal
 from TwoDim.DQN.Nets import PG1Layer
 from TwoDim.DQN.RunDQN import compact2full
 
 
-'''
-APIs
-The environment is dealing with tuples for states and actions
-The agent is dealing *only* with Tensors.
-RunDQN is responsible for translating from one to the other. 
-'''
-
-
 def run_coordinator_pg(mdp, agent, num_episodes, max_episode_len):
     """
-
     :param mdp:
     :param agent:
     :param num_episodes:
@@ -26,15 +18,21 @@ def run_coordinator_pg(mdp, agent, num_episodes, max_episode_len):
     :return:
     """
     episode_durations = []
+    # Sum napkin computation of the shortest path without mines...
     shortest_path = sum(mdp.shape) - len(mdp.shape)
     best_average_reward = (mdp.reach_reward - shortest_path) / shortest_path
 
+    episode_lengths = []
     for num_episode in range(num_episodes):
-        print("num_episode={}".format(num_episode))
+        if num_episode % 20 == 0:
+            print("num_episode={}".format(num_episode))
+            print("episode_lengths=<{}>   {}".format("NaN" if len(episode_lengths)==0 else np.mean(episode_lengths), episode_lengths))
+            episode_lengths=[]
         mdp.reset()
         reward_vec = []
+
+        # Loop over the episodes
         for i in range(max_episode_len):
-            print("i={}".format(i))
             # Get the state as numpy. Making a full representation from it
             # and transform it to torch (agent is in torch)
             state: np.ndarray = mdp.cur_state
@@ -51,7 +49,7 @@ def run_coordinator_pg(mdp, agent, num_episodes, max_episode_len):
             agent.update(state_full, action_idx, reward, next_state_full)
             if done:
                 break
-        print("episode lenght={}".format(i))
+        episode_lengths.append(i)
 
         agent.update_policy()
         average_reward = np.sum(reward_vec) / (i + 1)
@@ -64,20 +62,20 @@ def run_coordinator_pg(mdp, agent, num_episodes, max_episode_len):
             plt.ylabel('results')
             plt.show(block=False)
             plt.pause(0.0001)
+    show_minefield(mdp, agent)
 
 
 def run_minefield_pg(**kwargs):
-    # The seed for reproducibility
     num_episodes = kwargs.get("num_episodes")
     max_episode_len = kwargs.get("max_episode_len")
     random_seed = kwargs.get("random_seed")
     shape = kwargs.get("shape")
-    eps_greedy = kwargs.get("eps_greedy")
     gamma = kwargs.get("gamma")
     lr = kwargs.get("lr")
-    batch_size = kwargs.get("batch_size")
     agent_class = kwargs.get("agent_class")
     policy_net_class = kwargs.get("policy_net_class")
+
+    # The seed for reproducibility
     random = np.random.RandomState(random_seed)
 
     # The MDP
@@ -115,7 +113,7 @@ if __name__ == "__main__":
                      random_seed=142,
                      shape=(4, 5),
                      gamma=0.9,
-                     lr=0.01,
+                     lr=0.005,
                      batch_size=40,
                      agent_class=AgentPG,
                      policy_net_class=PG1Layer
