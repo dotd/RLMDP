@@ -63,7 +63,7 @@ def run_coordinator_pg(mdp, agent, num_episodes, max_episode_len):
             plt.ylabel('results')
             aa = plt.subplot(2, 1, 2)
             aa.cla()
-            show_minefield(mdp, agent)
+            show_minefield(plt, mdp, agent)
             plt.show(block=False)
             plt.pause(0.0001)
 
