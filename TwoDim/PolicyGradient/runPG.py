@@ -23,6 +23,8 @@ def run_coordinator_pg(mdp, agent, num_episodes, max_episode_len):
     best_average_reward = (mdp.reach_reward - shortest_path) / shortest_path
 
     episode_lengths = []
+    dynamic_figure = None
+    start_end_figure = None
     for num_episode in range(num_episodes):
         if num_episode % 20 == 0:
             print("num_episode={}".format(num_episode))
@@ -30,6 +32,13 @@ def run_coordinator_pg(mdp, agent, num_episodes, max_episode_len):
             episode_lengths=[]
         mdp.reset()
         reward_vec = []
+        if start_end_figure is None:
+            plt.figure()
+            start_end_figure = plt.gcf().number
+            plt.subplot(2, 1, 1)
+            show_minefield(plt, mdp, agent)
+            plt.title("Initial policy")
+
 
         # Loop over the episodes
         for i in range(max_episode_len):
@@ -55,7 +64,11 @@ def run_coordinator_pg(mdp, agent, num_episodes, max_episode_len):
         average_reward = np.sum(reward_vec) / (i + 1)
         episode_durations.append(average_reward)
 
-        if num_episode % 50 == 0:
+        if num_episode % 100 == 0:
+            if dynamic_figure is None:
+                plt.figure()
+                dynamic_figure = plt.gcf().number
+            plt.figure(dynamic_figure)
             episode_durations_smoothed = smooth_signal(episode_durations, window_smooth_len=100)
             plt.subplot(2,1,1)
             plt.plot(episode_durations_smoothed)
@@ -64,8 +77,22 @@ def run_coordinator_pg(mdp, agent, num_episodes, max_episode_len):
             aa = plt.subplot(2, 1, 2)
             aa.cla()
             show_minefield(plt, mdp, agent)
+            plt.title("Current policy")
             plt.show(block=False)
             plt.pause(0.0001)
+
+    # Show last time the dynamic figure
+    plt.figure(dynamic_figure)
+    plt.show(block=False)
+    plt.pause(0.0001)
+    print("Showed last time dynamic plot.")
+    plt.figure(start_end_figure)
+    plt.subplot(2, 1, 2)
+    show_minefield(plt, mdp, agent)
+    plt.title("Final policy")
+    plt.show(block=False)
+    plt.pause(0.0001)
+    print("Showed second time start-end plot.")
 
 
 def run_minefield_pg(**kwargs):
@@ -121,3 +148,4 @@ if __name__ == "__main__":
                      agent_class=AgentPG,
                      policy_net_class=PG1Layer
                     )
+    input("Press Enter to continue...")
