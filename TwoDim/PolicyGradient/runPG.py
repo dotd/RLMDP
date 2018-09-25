@@ -7,9 +7,10 @@ from TwoDim.PolicyGradient.AgentPolicyGradient import AgentPG
 from TwoDim.TwoDimUtils import smooth_signal
 from TwoDim.DQN.Nets import PG1Layer
 from TwoDim.DQN.RunDQN import compact2full
+from TwoDim.Minefield import generate_standard_minefield_parameters
 
 
-def run_coordinator_pg(mdp, agent, num_episodes, max_episode_len):
+def run_coordinator_pg(mdp, agent, num_episodes, max_episode_len, goal_reward):
     """
     :param mdp:
     :param agent:
@@ -20,7 +21,7 @@ def run_coordinator_pg(mdp, agent, num_episodes, max_episode_len):
     episode_durations = []
     # Sum napkin computation of the shortest path without mines...
     shortest_path = sum(mdp.shape) - len(mdp.shape)
-    best_average_reward = (mdp.reach_reward - shortest_path) / shortest_path
+    best_average_reward = (goal_reward - shortest_path) / shortest_path
 
     episode_lengths = []
     dynamic_figure = None
@@ -60,7 +61,11 @@ def run_coordinator_pg(mdp, agent, num_episodes, max_episode_len):
                 break
         episode_lengths.append(i)
 
-        agent.update_policy()
+        #print("episode={}".format(num_episode))
+        #print("before W={}".format(agent.policy_net.W1.weight))
+        info = agent.update_policy()
+        #print("after W={}".format(agent.policy_net.W1.weight))
+        #print(info)
         average_reward = np.sum(reward_vec) / (i + 1)
         episode_durations.append(average_reward)
 
@@ -79,7 +84,8 @@ def run_coordinator_pg(mdp, agent, num_episodes, max_episode_len):
             show_minefield(plt, mdp, agent)
             plt.title("Current policy")
             plt.show(block=False)
-            plt.pause(0.0001)
+            plt.pause(0.1)
+            #input(":::")
 
     # Show last time the dynamic figure
     plt.figure(dynamic_figure)
@@ -104,18 +110,25 @@ def run_minefield_pg(**kwargs):
     lr = kwargs.get("lr")
     agent_class = kwargs.get("agent_class")
     policy_net_class = kwargs.get("policy_net_class")
+    num_mines = kwargs.get("num_mines")
+    goal_reward = 100
+    mine_reward = -40
+    step_reward = -1
+    randon_action_probability = 0.05
 
     # The seed for reproducibility
     random = np.random.RandomState(random_seed)
 
     # The MDP
+    start_states, terminal_states, rewards = generate_standard_minefield_parameters(random, num_mines, shape, goal_reward, mine_reward)
     mdp = Minefield(
         random_generator=random,
         shape=shape,
-        num_mines=0,
-        start=np.array([np.array([0, 0], dtype=np.int)]),
-        terminal_states=np.array(
-            [np.array([shape[0] - 1, shape[1] - 1], dtype=np.int)]))  # Terminal state in the corner
+        step_reward=step_reward,
+        rand_action_prob=randon_action_probability,
+        start_states=start_states,
+        terminal_states=terminal_states,
+        rewards=rewards)
 
     # The Agent
     X = np.prod(shape) # state space size
@@ -134,16 +147,17 @@ def run_minefield_pg(**kwargs):
                         lr=lr)
 
     # running it.
-    run_coordinator_pg(mdp, agent, num_episodes, max_episode_len)
+    run_coordinator_pg(mdp, agent, num_episodes, max_episode_len, goal_reward)
 
 
 if __name__ == "__main__":
     run_minefield_pg(num_episodes=2000,
-                     max_episode_len=200,
-                     random_seed=142,
-                     shape=(4, 5),
+                     max_episode_len=400,
+                     random_seed=139,
+                     shape=(10, 9),
+                     num_mines=0,
                      gamma=0.9,
-                     lr=0.005,
+                     lr=0.01,
                      batch_size=40,
                      agent_class=AgentPG,
                      policy_net_class=PG1Layer

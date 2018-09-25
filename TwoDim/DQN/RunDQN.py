@@ -10,7 +10,7 @@ from TwoDim.DQN.Nets import DQN1Layer
 def compact2full(state: np.ndarray, shape: List) -> np.ndarray:
 
     # The single state case. state is a 1d Numpy array
-    if len(state.shape) == 1:
+    if len(np.array(np.array(state).shape)) == 1:
         state_full = np.zeros(shape)
         state_full[state[0]][state[1]] = 1
         state_full = state_full.flatten()

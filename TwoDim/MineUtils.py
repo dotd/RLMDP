@@ -20,6 +20,8 @@ def show_policy(plt_param, policy, start_states, terminal_states, x_scale=1, y_s
     :param policy:
     :param x_scale: If we want to scale on the X axis
     :param y_scale: If we want to scale on the Y axis
+    :param start_states:
+    :param terminal_states
     :return: None = plot on the given plt_param
     """
     for entry in policy:
@@ -66,9 +68,9 @@ def show_minefield(plt_param, mdp, agent):
 
 
 if __name__ == "__main__":
-    policy = [{"x": 0.0, "y": 0.0, "up": 0.5, "down": 0.2, "right": 0.2, "left": 0.1}]
-    policy += [{"x": 0.0, "y": 1.0, "up": 0.9, "down": 0.1, "right": 0, "left": 0}]
-    policy += [{"x": 1.0, "y": 0.0, "up": 0, "down": 1, "right": 0, "left": 0}]
-    policy += [{"x": 1.0, "y": 1.0, "up": 0.5, "down": 0.2, "right": 0.2, "left": 0.1}]
-    policy += [{"x": 1.0, "y": 2.0, "up": 0.5, "down": 0.2, "right": 0.2, "left": 0.1}]
-    show_policy(10, 10, policy)
+    policy_syn = [{"x": 0.0, "y": 0.0, "up": 0.5, "down": 0.2, "right": 0.2, "left": 0.1}]
+    policy_syn += [{"x": 0.0, "y": 1.0, "up": 0.9, "down": 0.1, "right": 0, "left": 0}]
+    policy_syn += [{"x": 1.0, "y": 0.0, "up": 0, "down": 1, "right": 0, "left": 0}]
+    policy_syn += [{"x": 1.0, "y": 1.0, "up": 0.5, "down": 0.2, "right": 0.2, "left": 0.1}]
+    policy_syn += [{"x": 1.0, "y": 2.0, "up": 0.5, "down": 0.2, "right": 0.2, "left": 0.1}]
+    show_policy(10, 10, policy_syn)

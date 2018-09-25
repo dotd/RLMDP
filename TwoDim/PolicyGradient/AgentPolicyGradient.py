@@ -53,7 +53,13 @@ class AgentPG:
         state_torch = torch.from_numpy(state_cur).type(torch.FloatTensor)
         state_torch = self.policy_net(Variable(state_torch))
         categorical = Categorical(state_torch)
-        action_idx = categorical.sample()
+        try:
+            action_idx = categorical.sample()
+        except:
+            print("Problem!")
+            print("state={}".format(state_cur))
+            print("state_torch={}".format(state_torch))
+            print("")
 
         if self.policy_history is not None:
             self.policy_history = torch.cat([self.policy_history, categorical.log_prob(action_idx).view(-1)])
@@ -70,6 +76,7 @@ class AgentPG:
     """
 
     def update_policy(self):
+        info = {}
         R = 0
         rewards = []
 
@@ -80,10 +87,20 @@ class AgentPG:
 
         # Scale rewards
         rewards = torch.FloatTensor(rewards)
-        rewards = (rewards - rewards.mean()) / (rewards.std() + torch.FloatTensor([np.finfo(np.float32).eps]))
+        if len(self.reward_episode[::-1]) > 1:
+            # If there is only a single sample, the std is NaN. We
+            info["rewards_before"] = rewards.clone()
+            info["rewards_mean"] = rewards.mean()
+            info["rewards_std"] = rewards.std()
+            info["rewards_std0"] = rewards.std() + torch.FloatTensor([np.finfo(np.float32).eps])
+            rewards = (rewards - rewards.mean()) / (rewards.std() + torch.FloatTensor([np.finfo(np.float32).eps]))
+        else:
+            rewards = (rewards - rewards.mean())
+        info["rewards_after"] = rewards.clone()
 
         # Calculate loss
         loss = (torch.sum(torch.mul(self.policy_history, Variable(rewards)).mul(-1), -1))
+        info["loss"] = loss
 
         # Update network weights
         self.optimizer.zero_grad()
@@ -96,6 +113,7 @@ class AgentPG:
         # Zeroizing episode vars!
         self.policy_history = None
         self.reward_episode = []
+        return info
 
     def update(self, state_full, action_idx, reward, next_state_full):
         self.reward_episode.append(reward)
