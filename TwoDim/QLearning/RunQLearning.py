@@ -53,7 +53,6 @@ def run_q_learning(**kwargs):
     step_reward = -1
     random_action_probability = 0.05
 
-
     # The MDP
     start_states, terminal_states, rewards = generate_standard_minefield_parameters(random, num_mines, shape,
                                                                                     goal_reward, mine_reward)

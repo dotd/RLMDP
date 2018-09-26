@@ -48,8 +48,14 @@ def run_coordinator(mdp, agent, num_episodes, max_episode_len, reach_reward):
     shortest_path = sum(mdp.shape) - len(mdp.shape)
     best_average_reward = (reach_reward - shortest_path) / shortest_path
 
+    episode_lengths = []
+    dynamic_figure = None
+    start_end_figure = None
     for num_episode in range(num_episodes):
-        print("num_episode={}".format(num_episode))
+        if num_episode % 20 == 0:
+            print("num_episode={}".format(num_episode))
+            print("episode_lengths=<{}>   {}".format("NaN" if len(episode_lengths)==0 else np.mean(episode_lengths), episode_lengths))
+            episode_lengths=[]
         mdp.reset()
         reward_vec = []
         for i in range(max_episode_len):

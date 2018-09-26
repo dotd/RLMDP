@@ -1,6 +1,7 @@
 import torch
 import torch.optim as optim
 import torch.nn.functional as F
+from torch.autograd import Variable
 
 from TwoDim.AgentBase import AgentBase
 from TwoDim.TwoDimUtils import ReplayMemory
@@ -158,6 +159,11 @@ class AgentDQN(AgentBase):
         for param in self.policy_net.parameters():
             param.grad.data.clamp_(-1, 1)
         self.optimizer.step()
+
+    def get_policy_probabilities(self, states):
+        state_torch = torch.from_numpy(states).type(torch.FloatTensor)
+        state_torch = self.policy_net(Variable(state_torch))
+        return state_torch
 
 
 if __name__ == "__main__":
