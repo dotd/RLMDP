@@ -152,12 +152,12 @@ def run_minefield_pg(**kwargs):
 
 if __name__ == "__main__":
     run_minefield_pg(num_episodes=2000,
-                     max_episode_len=400,
+                     max_episode_len=100,
                      random_seed=139,
-                     shape=(10, 9),
+                     shape=(5, 4),
                      num_mines=0,
-                     gamma=0.9,
-                     lr=0.01,
+                     gamma=0.8,
+                     lr=0.001,
                      batch_size=40,
                      agent_class=AgentPG,
                      policy_net_class=PG1Layer

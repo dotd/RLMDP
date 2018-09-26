@@ -5,7 +5,7 @@ from collections import defaultdict
 
 class AgentQLearning(AgentBase):
 
-    def __init__(self, actions, random, default_q_value=0.0, eps_greedy=0.01, gamma=0.5, lr=0.05):
+    def __init__(self, actions, random, default_q_value, eps_greedy, gamma, lr):
         """
         :param actions: the actions of the actions in the agent's setup
         :param random: giving the numpy RandomState generator.

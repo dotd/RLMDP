@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 from typing import List
 
 from TwoDim.Minefield import Minefield
+from TwoDim.Minefield import generate_standard_minefield_parameters
 from TwoDim.DQN.AgentDQN import AgentDQN
 from TwoDim.TwoDimUtils import *
 from TwoDim.DQN.Nets import DQN1Layer
@@ -34,7 +35,7 @@ RunDQN is responsible for translating from one to the other.
 '''
 
 
-def run_coordinator(mdp, agent, num_episodes, max_episode_len):
+def run_coordinator(mdp, agent, num_episodes, max_episode_len, reach_reward):
     """
 
     :param mdp:
@@ -45,7 +46,7 @@ def run_coordinator(mdp, agent, num_episodes, max_episode_len):
     """
     episode_durations = []
     shortest_path = sum(mdp.shape) - len(mdp.shape)
-    best_average_reward = (mdp.reach_reward - shortest_path) / shortest_path
+    best_average_reward = (reach_reward - shortest_path) / shortest_path
 
     for num_episode in range(num_episodes):
         print("num_episode={}".format(num_episode))
@@ -93,15 +94,23 @@ def run_minefield_dqn(**kwargs):
     batch_size = kwargs.get("batch_size")
     agent_class = kwargs.get("agent_class")
     random = np.random.RandomState(random_seed)
+    num_mines = kwargs.get("num_mines")
+    goal_reward = 100
+    mine_reward = -40
+    step_reward = -1
+    random_action_probability = 0.05
+
 
     # The MDP
+    start_states, terminal_states, rewards = generate_standard_minefield_parameters(random, num_mines, shape, goal_reward, mine_reward)
     mdp = Minefield(
         random_generator=random,
         shape=shape,
-        num_mines=5,
-        start=np.array([np.array([0, 0], dtype=np.int)]),
-        terminal_states=np.array(
-            [np.array([shape[0] - 1, shape[1] - 1], dtype=np.int)]))  # Terminal state in the corner
+        step_reward=step_reward,
+        rand_action_prob=random_action_probability,
+        start_states=start_states,
+        terminal_states=terminal_states,
+        rewards=rewards)
 
     # The Agent
     X = np.prod(shape) # state space size
@@ -123,7 +132,7 @@ def run_minefield_dqn(**kwargs):
                         batch_size=batch_size)
 
     # running it.
-    run_coordinator(mdp, agent, num_episodes, max_episode_len)
+    run_coordinator(mdp, agent, num_episodes, max_episode_len, goal_reward)
     plt.figure(2)
     plt.plot(agent.loss_vec)
     plt.show(block=True)
@@ -136,6 +145,7 @@ if __name__ == "__main__":
                       shape=(9, 10),
                       eps_greedy=0,
                       gamma=0.9,
+                      num_mines=0,
                       lr=0.0007,
                       replay_memory_capacity=100,
                       batch_size=40,
