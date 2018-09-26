@@ -7,6 +7,7 @@ from TwoDim.PolicyGradient.AgentPolicyGradient import AgentPG
 from TwoDim.DQN.AgentDQN import AgentDQN
 from TwoDim.TwoDimUtils import smooth_signal
 from TwoDim.DQN.Nets import PG1Layer
+from TwoDim.DQN.Nets import DQN1Layer
 from TwoDim.DQN.RunDQN import compact2full
 from TwoDim.Minefield import generate_standard_minefield_parameters
 
@@ -159,21 +160,32 @@ def run_main():
 
     environment_params = dict()
     environment_params["shape"] = (5, 4)
-    environment_params["num_mines"] = 0
+    environment_params["num_mines"] = 1
     environment_params["goal_reward"] = 100
     environment_params["mine_reward"] = -40
     environment_params["step_reward"] = -1
     environment_params["random_action_probability"] = 0.05
 
     agent_params = dict()
-    agent_params["agent_class"] = AgentPG
-    agent_params["policy_net_class"] = PG1Layer
-    agent_params["policy_net_parameters"] = {"init_values": "zeros"}
-    agent_params["lr"] = 0.001
     agent_params["gamma"] = 0.8
     agent_params["random_seed_agent"] = 209
 
-    dqn_params = dict()
+    agent_type = "dqn"
+    if agent_type=="pg":
+        print("PG running")
+        agent_params["agent_class"] = AgentPG
+        agent_params["policy_net_class"] = PG1Layer
+        agent_params["policy_net_parameters"] = {"init_values": "zeros"}
+        agent_params["lr"] = 0.001
+    else:
+        print("DQN running")
+        agent_params["agent_class"] = AgentDQN
+        agent_params["policy_net_class"] = DQN1Layer
+        agent_params["policy_net_parameters"] = {"init_values": "zeros"}
+        agent_params["eps_greedy"] = 0.02
+        agent_params["replay_memory_capacity"] = 10000
+        agent_params["batch_size"] = 50
+        agent_params["lr"] = 0.001
 
     run_simulation(simulation_params, environment_params, agent_params)
     input("Press Enter to continue...")
