@@ -5,7 +5,7 @@ from collections import deque
 
 from Risk.RiskMDPs import NoisyStepsMDP
 from Risk.RiskAgent import AgentRiskPG
-from Risk.ComputeRisk import ComputeRisk
+from Risk.RiskUtils import ComputeRiskGeneral
 
 
 shape = [5, 5]
@@ -37,12 +37,12 @@ episodes_risk = []
 episode_reward = 0
 episode_risk = 0
 
-compute_risk= ComputeRisk(gamma, window_size=20, maximal_num_samples=20)
+compute_risk= ComputeRiskGeneral(gamma, window_size=20, maximal_num_samples=20)
 last_risks = deque(maxlen=window_len)
 hist = np.zeros(shape=[shape[0]*2+1, shape[1]+1])
 
 for s in range(num_steps):
-    if s%1000==0:
+    if s%1000==0 and s!=0:
         print("s={}".format(s))
         plt.subplot(3,1,1)
         plt.plot(episodes)
@@ -55,12 +55,12 @@ for s in range(num_steps):
         plt.pause(0.01)
 
     hist[state[0] + shape[0], state[1]] += 1
-    state_in = compact2full(state)
-    action = agent.choose_action(state_in)
+    state_full = compact2full(state)
+    action = agent.choose_action(state_full)
     next_state, reward, done, info = mdp.step(action)
     episode_reward += reward
 
-    compute_risk.add(tuple(state), reward)
+    compute_risk.add(tuple(state), reward, action)
     risk = compute_risk.compute_var(tuple(state))
     if risk is not None:
         episode_risk += risk

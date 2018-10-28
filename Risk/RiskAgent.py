@@ -6,9 +6,12 @@ from torch.autograd import Variable
 import torch.optim as optim
 from torch.distributions import Categorical
 
+from Risk.RiskUtils import ComputeRiskGeneral
 
-##################################################3
 class PG1Layer(nn.Module):
+    """
+    Single Layer Network for Policy Gradient
+    """
     def __init__(self, dim_state, num_actions):
         super(PG1Layer, self).__init__()
         self.dim_state = dim_state.item() if isinstance(dim_state, np.ndarray) else dim_state
@@ -22,7 +25,6 @@ class PG1Layer(nn.Module):
         return model(x)
 
 
-##################################################3
 class AgentRiskPG:
 
     def __init__(self,
@@ -40,6 +42,7 @@ class AgentRiskPG:
         self.policy_net = PG1Layer(self.states, self.actions).to(self.device)
         self.optimizer = optim.SGD(self.policy_net.parameters(), lr=lr)
         self.gamma = gamma
+        self.compute_risk = ComputeRiskGeneral(gamma, window_size=20, maximal_num_samples=20)
 
         ################################################################
         # Episode policy and reward history

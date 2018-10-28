@@ -5,7 +5,7 @@ from collections import deque
 
 from Risk.RiskMDPs import PureRiskMDP
 from Risk.RiskAgent import AgentRiskPG
-from Risk.ComputeRisk import ComputeRisk
+from Risk.RiskUtils import ComputeRiskGeneral
 
 
 shape = [24, 24]
@@ -36,7 +36,7 @@ episodes_risk = []
 episode_reward = 0
 episode_risk = 0
 
-compute_risk= ComputeRisk(gamma, window_size=20, maximal_num_samples=20)
+compute_risk= ComputeRiskGeneral(gamma, window_size=20, maximal_num_samples=20)
 last_risks = deque(maxlen=window_len)
 
 for s in range(num_steps):
