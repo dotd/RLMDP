@@ -8,9 +8,10 @@ from torch.distributions import Categorical
 
 from Risk.RiskUtils import ComputeRiskGeneral
 
+
 class PG1Layer(nn.Module):
     """
-    Single Layer Network for Policy Gradient
+    Single Layer Network for the Policy Gradient
     """
     def __init__(self, dim_state, num_actions):
         super(PG1Layer, self).__init__()
@@ -25,6 +26,25 @@ class PG1Layer(nn.Module):
         return model(x)
 
 
+class RiskEstimatorNet(nn.Module):
+
+    def __init__(self, dim_state, hidden_state):
+        super(RiskEstimatorNet, self).__init__()
+        self.dim_state = dim_state.item() if isinstance(dim_state, np.ndarray) else dim_state
+        self.hidden_state = hidden_state.item() if isinstance(hidden_state, np.ndarray) else hidden_state
+        self.W1 = nn.Linear(self.dim_state, out_features=hidden_state)
+        self.W2 = nn.Linear(self.hidden_state, out_features=1)
+
+    def forward(self, x):
+        model = torch.nn.Sequential(
+            self.W1,
+            nn.ReLU,
+            self.W2,
+            nn.Sigmoid,
+        )
+        return model(x)
+
+
 class AgentRiskPG:
 
     def __init__(self,
@@ -32,7 +52,9 @@ class AgentRiskPG:
                  actions, # The actions come in the order for the indices.
                  random,
                  gamma,
-                 lr):
+                 lr,
+                 alpha=0,
+                 f=lambda x:x*x):
         self.device = torch.device("cpu")
         self.states = states
         self.actions = actions
@@ -40,7 +62,11 @@ class AgentRiskPG:
 
         # network section
         self.policy_net = PG1Layer(self.states, self.actions).to(self.device)
-        self.optimizer = optim.SGD(self.policy_net.parameters(), lr=lr)
+        self.optimizer_policy = optim.SGD(self.policy_net.parameters(), lr=lr)
+
+        self.risk_net = RiskEstimatorNet(self.states, self.states).to(self.device)
+        self.optimizer_risk = optim.SGD(self.policy_net.parameters(), lr=lr)
+
         self.gamma = gamma
         self.compute_risk = ComputeRiskGeneral(gamma, window_size=20, maximal_num_samples=20)
 
@@ -51,6 +77,8 @@ class AgentRiskPG:
         # Overall reward and loss history
         self.reward_history = []
         self.loss_history = []
+        # Risk
+        self.risk_history = []
 
     def choose_action(self, state):
         state_torch = torch.from_numpy(state).type(torch.FloatTensor).to(self.device)
@@ -65,8 +93,10 @@ class AgentRiskPG:
 
         return action
 
-    def update(self, reward):
+    def update(self, reward, state=None, risk=None):
         self.reward_episode.append(reward)
+        if state is not None:
+            self.risk_history.append(risk)
 
     def update_policy(self):
         info = {}
@@ -92,13 +122,13 @@ class AgentRiskPG:
         info["rewards_after"] = rewards.clone()
 
         # Calculate loss
-        loss = (torch.sum(torch.mul(self.log_policy_history, Variable(rewards).to(self.device)).mul(-1), -1))
+        loss = torch.sum(torch.mul(self.log_policy_history, Variable(rewards).to(self.device)).mul(-1), -1)
         info["loss"] = loss
 
         # Update network weights
-        self.optimizer.zero_grad()
+        self.optimizer_policy.zero_grad()
         loss.backward()
-        self.optimizer.step()
+        self.optimizer_policy.step()
 
         # Save and intialize episode history counters
         self.loss_history.append(loss.data[0].item())

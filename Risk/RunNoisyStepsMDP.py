@@ -12,7 +12,7 @@ shape = [5, 5]
 maximal_steps = 20
 states = shape[0] * shape[1]
 actions = 5
-gamma = 0.99
+gamma = 0.9
 lr = 0.001
 random = np.random.RandomState(0)
 
@@ -37,19 +37,24 @@ episodes_risk = []
 episode_reward = 0
 episode_risk = 0
 
-compute_risk= ComputeRiskGeneral(gamma, window_size=20, maximal_num_samples=20)
+compute_risk= ComputeRiskGeneral(gamma, window_size=20, maximal_num_samples=200)
 last_risks = deque(maxlen=window_len)
 hist = np.zeros(shape=[shape[0]*2+1, shape[1]+1])
 
 for s in range(num_steps):
     if s%1000==0 and s!=0:
         print("s={}".format(s))
-        plt.subplot(3,1,1)
+        plt.clf()
+        plt.subplot(2,2,1)
         plt.plot(episodes)
-        plt.subplot(3,1,2)
+        plt.subplot(2,2,2)
         plt.plot(episodes_risk)
-        plt.subplot(3,1,3)
+        plt.subplot(2,2,3)
         plt.imshow(hist/np.sum(hist))
+        plt.colorbar()
+        plt.subplot(2,2,4)
+        plt.imshow(compute_risk.get_risk_map(shape))
+        plt.colorbar()
         hist = np.zeros(shape=[shape[0] * 2 + 1, shape[1] + 1])
         plt.show(block=False)
         plt.pause(0.01)
@@ -79,3 +84,4 @@ for s in range(num_steps):
     state = next_state
 
 
+plt.show(block=True)

@@ -27,21 +27,32 @@ class ComputeRiskGeneral(ComputeRiskSimple):
     def __init__(self, gamma, window_size, maximal_num_samples):
         ComputeRiskSimple.__init__(self, gamma, window_size)
         self.maximal_num_samples = maximal_num_samples
+        self.states = None
+        self.state_actions = None
+        self.reset()
+
+    def reset(self):
         self.states = dict()
         self.state_actions = dict()
+
+    def free_tail(self):
+        for p in range(1, len(self.deque)):
+            B0 = np.sum([self.deque[i][1] * self.gamma_vec[i] for i in range(p, len(self.deque))])
+            
 
     def add(self, state, reward, action):
         B0 = ComputeRiskSimple.add(self, state, reward, action)
         if B0 is None:
             return None
 
+        # (1) take the first sample, i.e., the state, and add statistics of it.
         state0 = self.deque[0][0]
-        action0 = self.deque[0][2]
         if state0 not in self.states:
             self.states[state0] = deque(maxlen=self.maximal_num_samples)
         self.states[state0].append(B0)
 
         # (2) take the first sample, i.e., the state-action, and add statistics of it.
+        action0 = self.deque[0][2]
         state_action = (state0, action0)
         if state_action not in self.state_actions:
             self.state_actions[state_action] = deque(maxlen=self.maximal_num_samples)
@@ -60,3 +71,8 @@ class ComputeRiskGeneral(ComputeRiskSimple):
                 return None
             return np.std(self.state_actions[state_action])
 
+    def get_risk_map(self, shape):
+        map = np.zeros(shape=(shape[0]*2+1, shape [1]))
+        for state in self.states:
+            map[state[0]+shape[0], state[1]] = np.var(self.states[state])
+        return map
