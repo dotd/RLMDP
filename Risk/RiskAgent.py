@@ -6,6 +6,7 @@ from torch.autograd import Variable
 import torch.optim as optim
 from torch.distributions import Categorical
 
+
 ##################################################3
 class PG1Layer(nn.Module):
     def __init__(self, dim_state, num_actions):
@@ -19,6 +20,7 @@ class PG1Layer(nn.Module):
             nn.Softmax(dim=-1)
         )
         return model(x)
+
 
 ##################################################3
 class AgentRiskPG:
@@ -41,7 +43,7 @@ class AgentRiskPG:
 
         ################################################################
         # Episode policy and reward history
-        self.policy_history = None
+        self.log_policy_history = None
         self.reward_episode = []
         # Overall reward and loss history
         self.reward_history = []
@@ -53,10 +55,10 @@ class AgentRiskPG:
         categorical = Categorical(action_vec)
         action = categorical.sample()
 
-        if self.policy_history is not None:
-            self.policy_history = torch.cat([self.policy_history, categorical.log_prob(action).view(-1)])
+        if self.log_policy_history is not None:
+            self.log_policy_history = torch.cat([self.log_policy_history, categorical.log_prob(action).view(-1)])
         else:
-            self.policy_history = categorical.log_prob(action).view(-1)
+            self.log_policy_history = categorical.log_prob(action).view(-1)
 
         return action
 
@@ -87,7 +89,7 @@ class AgentRiskPG:
         info["rewards_after"] = rewards.clone()
 
         # Calculate loss
-        loss = (torch.sum(torch.mul(self.policy_history, Variable(rewards)).mul(-1), -1))
+        loss = (torch.sum(torch.mul(self.log_policy_history, Variable(rewards).to(self.device)).mul(-1), -1))
         info["loss"] = loss
 
         # Update network weights
@@ -96,10 +98,10 @@ class AgentRiskPG:
         self.optimizer.step()
 
         # Save and intialize episode history counters
-        self.loss_history.append(loss.data[0])
+        self.loss_history.append(loss.data[0].item())
         self.reward_history.append(np.sum(self.reward_episode))
         # Zeroizing episode vars!
-        self.policy_history = None
+        self.log_policy_history = None
         self.reward_episode = []
         return info
 

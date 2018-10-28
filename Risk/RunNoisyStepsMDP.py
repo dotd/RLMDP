@@ -3,25 +3,26 @@ import numpy as np
 from time import sleep
 from collections import deque
 
-from Risk.RiskMDPs import PureRiskMDP
+from Risk.RiskMDPs import NoisyStepsMDP
 from Risk.RiskAgent import AgentRiskPG
 from Risk.ComputeRisk import ComputeRisk
 
 
-shape = [24, 24]
+shape = [5, 5]
+maximal_steps = 20
 states = shape[0] * shape[1]
 actions = 5
-gamma = 0.9
+gamma = 0.99
 lr = 0.001
 random = np.random.RandomState(0)
 
-mdp = PureRiskMDP(random_generator=random, shape=shape, noise_prob=0.01)
+mdp = NoisyStepsMDP(random_generator=random, shape=shape, noise_prob=0.01, maximal_steps=maximal_steps)
 state = mdp.reset()
 agent = AgentRiskPG(states, actions, random, gamma, lr)
 
 window_len = 100
 last_rewards = deque(maxlen=window_len)
-num_steps = 100000
+num_steps = 40000
 
 def compact2full(state):
     out = np.zeros(shape=shape)
@@ -38,17 +39,22 @@ episode_risk = 0
 
 compute_risk= ComputeRisk(gamma, window_size=20, maximal_num_samples=20)
 last_risks = deque(maxlen=window_len)
+hist = np.zeros(shape=[shape[0]*2+1, shape[1]+1])
 
 for s in range(num_steps):
     if s%1000==0:
         print("s={}".format(s))
-        plt.subplot(2,1,1)
+        plt.subplot(3,1,1)
         plt.plot(episodes)
-        plt.subplot(2,1,2)
+        plt.subplot(3,1,2)
         plt.plot(episodes_risk)
+        plt.subplot(3,1,3)
+        plt.imshow(hist/np.sum(hist))
+        hist = np.zeros(shape=[shape[0] * 2 + 1, shape[1] + 1])
         plt.show(block=False)
         plt.pause(0.01)
 
+    hist[state[0] + shape[0], state[1]] += 1
     state_in = compact2full(state)
     action = agent.choose_action(state_in)
     next_state, reward, done, info = mdp.step(action)
