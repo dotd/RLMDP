@@ -6,8 +6,7 @@ from TwoDim.MineUtils import show_minefield
 from TwoDim.PolicyGradient.AgentPolicyGradient import AgentPG
 from TwoDim.DQN.AgentDQN import AgentDQN
 from TwoDim.TwoDimUtils import smooth_signal
-from TwoDim.DQN.Nets import PG1Layer
-from TwoDim.DQN.Nets import DQN1Layer
+import TwoDim.DQN.Nets as Nets
 from TwoDim.DQN.RunDQN import compact2full
 from TwoDim.Minefield import generate_standard_minefield_parameters
 
@@ -50,7 +49,7 @@ def run_coordinator_pg(mdp, agent, num_episodes, max_episode_len, goal_reward):
             state: np.ndarray = mdp.cur_state
             state_full: np.ndarray = compact2full(state, mdp.shape)
 
-            action_idx, action, categorical = agent.choose_action(state_full)
+            action_idx, action = agent.choose_action(state_full)
             next_state, reward, done, info = mdp.step(action)
 
             next_state_full = compact2full(next_state, mdp.shape) if not done else None
@@ -73,7 +72,8 @@ def run_coordinator_pg(mdp, agent, num_episodes, max_episode_len, goal_reward):
                 dynamic_figure = plt.gcf().number
             plt.figure(dynamic_figure)
             episode_durations_smoothed = smooth_signal(episode_durations, window_smooth_len=100)
-            plt.subplot(2,1,1)
+            aa = plt.subplot(2, 1, 1)
+            aa.cla()
             plt.plot(episode_durations_smoothed)
             plt.axhline(y=best_average_reward, xmin=0, xmax=num_episodes - 1)
             plt.ylabel('results')
@@ -98,7 +98,7 @@ def run_coordinator_pg(mdp, agent, num_episodes, max_episode_len, goal_reward):
     print("Showed second time start-end plot.")
 
 
-def run_simulation(simulation_params, environment_params, agent_params):
+def run_simulation2(simulation_params, environment_params, agent_params):
     # Simulation
     num_episodes = simulation_params["num_episodes"]
     max_episode_len = simulation_params["max_episode_len"]
@@ -152,6 +152,60 @@ def run_simulation(simulation_params, environment_params, agent_params):
     run_coordinator_pg(mdp, agent, num_episodes, max_episode_len, goal_reward)
 
 
+def run_simulation(simulation_params, environment_params, agent_params):
+    # Simulation
+    num_episodes = simulation_params["num_episodes"]
+    max_episode_len = simulation_params["max_episode_len"]
+    random_seed_sim = simulation_params["random_seed_sim"]
+    random_sim = np.random.RandomState(random_seed_sim)
+
+    # Environment
+    shape = environment_params["shape"]
+    goal_reward = environment_params["goal_reward"]
+    mine_reward = environment_params["mine_reward"]
+    step_reward = environment_params["step_reward"]
+    random_action_probability = environment_params["random_action_probability"]
+    num_mines = environment_params["num_mines"]
+
+    # Agent
+    """
+    random_seed_agent = agent_params["random_seed_agent"]
+    random_generator_agent = np.random.RandomState(random_seed_agent)
+    gamma = agent_params["gamma"]
+    lr = agent_params["lr"]
+    agent_class = agent_params["agent_class"]
+    policy_net_class = agent_params["policy_net_class"]
+    policy_net_parameters = agent_params["policy_net_parameters"]
+    """
+
+    # The seed for reproducibility
+
+    # The MDP
+    start_states, terminal_states, rewards = generate_standard_minefield_parameters(random_sim, num_mines, shape,
+                                                                                    goal_reward, mine_reward)
+    mdp = Minefield(
+        random_generator=random_sim,
+        shape=shape,
+        step_reward=step_reward,
+        rand_action_prob=random_action_probability,
+        start_states=start_states,
+        terminal_states=terminal_states,
+        rewards=rewards)
+
+    # The Agent
+    X = np.prod(shape) # state space size
+    #A = len(mdp.action_space) # action space size
+
+    agent_class = agent_params["agent_class"]
+    agent_params.pop("agent_class")
+    agent_params["dim_states"] = X
+    agent_params["actions"] = mdp.action_space
+    agent = agent_class(**agent_params)
+
+    # running it.
+    run_coordinator_pg(mdp, agent, num_episodes, max_episode_len, goal_reward)
+
+
 def run_main():
     simulation_params = dict()
     simulation_params["num_episodes"] = 5000
@@ -160,32 +214,32 @@ def run_main():
 
     environment_params = dict()
     environment_params["shape"] = (5, 4)
-    environment_params["num_mines"] = 1
+    environment_params["num_mines"] = 0
     environment_params["goal_reward"] = 100
     environment_params["mine_reward"] = -40
     environment_params["step_reward"] = -1
     environment_params["random_action_probability"] = 0.05
 
     agent_params = dict()
-    agent_params["gamma"] = 0.8
-    agent_params["random_seed_agent"] = 209
+    agent_params["gamma"] = 0.2
+    agent_params["random"] = np.random.RandomState(209)
 
     agent_type = "dqn"
     if agent_type=="pg":
         print("PG running")
         agent_params["agent_class"] = AgentPG
-        agent_params["policy_net_class"] = PG1Layer
+        agent_params["policy_net_class"] = Nets.PG1Layer
         agent_params["policy_net_parameters"] = {"init_values": "zeros"}
-        agent_params["lr"] = 0.001
+        agent_params["lr"] = 0.01
     else:
         print("DQN running")
         agent_params["agent_class"] = AgentDQN
-        agent_params["policy_net_class"] = DQN1Layer
-        agent_params["policy_net_parameters"] = {"init_values": "zeros"}
-        agent_params["eps_greedy"] = 0.02
-        agent_params["replay_memory_capacity"] = 10000
+        agent_params["policy_net_class"] = Nets.DQN2Layers
+        agent_params["policy_net_parameters"] = {"intermediate": 10}
+        agent_params["eps_greedy"] = 0.1
+        agent_params["replay_memory_capacity"] = 1000
         agent_params["batch_size"] = 50
-        agent_params["lr"] = 0.001
+        agent_params["lr"] = 0.00001
 
     run_simulation(simulation_params, environment_params, agent_params)
     input("Press Enter to continue...")

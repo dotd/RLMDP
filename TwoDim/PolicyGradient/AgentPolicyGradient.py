@@ -25,12 +25,11 @@ class AgentPG:
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.states = dim_states
         self.actions = actions
-        num_actions = len(actions)
         self.random = random
         self.num_actions = len(actions)
 
         policy_net_parameters["dim_state"] = dim_states
-        policy_net_parameters["num_actions"] = num_actions
+        policy_net_parameters["num_actions"] = self.num_actions
 
         # network section
         # network should NOT be already instantiated. Only class pointer
@@ -71,7 +70,7 @@ class AgentPG:
             self.policy_history = categorical.log_prob(action_idx).view(-1)
 
         action = self.actions[action_idx]
-        return action_idx, action, categorical
+        return action_idx, action
 
     """
     def update(self, state, action, reward, state_next, categorical):

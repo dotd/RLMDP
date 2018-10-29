@@ -32,6 +32,9 @@ class AgentDQN(AgentBase):
         self.random = random
         self.num_actions = len(actions)
 
+        policy_net_parameters["dim_state"] = dim_states
+        policy_net_parameters["num_actions"] = self.num_actions
+
         # network section
         # network should NOT be already instantiated. Only class pointer
         self.policy_net = policy_net_class(**policy_net_parameters).to(self.device)
@@ -163,7 +166,12 @@ class AgentDQN(AgentBase):
     def get_policy_probabilities(self, states):
         state_torch = torch.from_numpy(states).type(torch.FloatTensor)
         state_torch = self.policy_net(Variable(state_torch))
+        # scale it w.r.t. gamma
+        state_torch = state_torch * (1 - self.gamma) * 2
         return state_torch
+
+    def update_policy(self):
+        pass
 
 
 if __name__ == "__main__":

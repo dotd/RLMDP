@@ -31,11 +31,13 @@ def show_policy(plt_param, policy, start_states, terminal_states, x_scale=1, y_s
         down_arrow = center_y - y_scale / 2 * entry["down"]
         left_arrow = center_x + x_scale / 2 * entry["right"]
         right_arrow = center_x - x_scale / 2 * entry["left"]
+        max_value = np.max([entry["up"], entry["down"], entry["right"], entry["left"]])
         plt_param.plot(center_x, center_y, 'rp', markersize=5)
-        plt_param.plot([center_x, left_arrow], [center_y, center_y], color="blue")
-        plt_param.plot([center_x, right_arrow], [center_y, center_y], color="blue")
-        plt_param.plot([center_x, center_x], [center_y, up_arrow], color="blue")
-        plt_param.plot([center_x, center_x], [center_y, down_arrow], color="blue")
+
+        plt_param.plot([center_x, left_arrow], [center_y, center_y], color="blue" if entry["left"] < max_value else "red")
+        plt_param.plot([center_x, right_arrow], [center_y, center_y], color="blue" if entry["right"] < max_value else "red")
+        plt_param.plot([center_x, center_x], [center_y, up_arrow], color="blue" if entry["up"] < max_value else "red")
+        plt_param.plot([center_x, center_x], [center_y, down_arrow], color="blue" if entry["down"] < max_value else "red")
         plt_param.plot([center_x - x_scale / 2, center_x + x_scale / 2], [center_y - y_scale / 2, center_y - y_scale / 2], color="black")
         plt_param.plot([center_x - x_scale / 2, center_x + x_scale / 2], [center_y + y_scale / 2, center_y + y_scale / 2], color="black")
         plt_param.plot([center_x - x_scale / 2, center_x - x_scale / 2], [center_y - y_scale / 2, center_y + y_scale / 2], color="black")
