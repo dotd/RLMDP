@@ -107,7 +107,7 @@ class NoisyStepsMDP(PureRiskMDP):
 
         random_noise = self.random_generator.uniform(0,1) < self.noise_prob
         if random_noise:
-            noise_as_action = self.random_generator.choice([0,1,2,3])
+            noise_as_action = self.random_generator.choice([0, 1, 2, 3])
             self.next_location(noise_as_action)
         reward = self.next_location(action)
 

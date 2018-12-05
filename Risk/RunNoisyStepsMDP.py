@@ -1,6 +1,5 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from time import sleep
 from collections import deque
 
 from Risk.RiskMDPs import NoisyStepsMDP
@@ -20,8 +19,8 @@ mdp = NoisyStepsMDP(random_generator=random, shape=shape, noise_prob=0.01, maxim
 state = mdp.reset()
 agent = AgentRiskPG(states, actions, random, gamma, lr)
 
-window_len = 100
-last_rewards = deque(maxlen=window_len)
+last_rewards_window_len = 100
+last_rewards = deque(maxlen=last_rewards_window_len)
 num_steps = 40000
 
 def compact2full(state):
@@ -38,7 +37,7 @@ episode_reward = 0
 episode_risk = 0
 
 compute_risk= ComputeRiskGeneral(gamma, window_size=20, maximal_num_samples=200)
-last_risks = deque(maxlen=window_len)
+last_risks = deque(maxlen=last_rewards_window_len)
 hist = np.zeros(shape=[shape[0]*2+1, shape[1]+1])
 
 for s in range(num_steps):
@@ -77,8 +76,12 @@ for s in range(num_steps):
         last_risks.append(np.sum(episode_risk))
         episode_reward = 0
         episode_risk = 0
-        if len(last_rewards) > window_len-1:
+
+        # Smoothing the last rewards
+        if len(last_rewards) > last_rewards_window_len-1:
+            # The rewards
             episodes.append(np.average(last_rewards))
+            # The risks
             episodes_risk.append(np.average(last_risks))
 
     state = next_state

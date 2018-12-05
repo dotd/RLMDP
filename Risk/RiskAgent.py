@@ -65,7 +65,7 @@ class AgentRiskPG:
         self.optimizer_policy = optim.SGD(self.policy_net.parameters(), lr=lr)
 
         self.risk_net = RiskEstimatorNet(self.states, self.states).to(self.device)
-        self.optimizer_risk = optim.SGD(self.policy_net.parameters(), lr=lr)
+        self.optimizer_risk = optim.SGD(self.risk_net.parameters(), lr=lr)
 
         self.gamma = gamma
         self.compute_risk = ComputeRiskGeneral(gamma, window_size=20, maximal_num_samples=20)
