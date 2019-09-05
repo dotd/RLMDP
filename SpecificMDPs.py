@@ -1,9 +1,12 @@
-from Utils import *
 import math
+import numpy as np
+
+import Utils
 import Policies
 import MDP
 
 DEPEND_ONLY_ON_START_STATE = "depend_only_on_start_state"
+
 
 def generate_investment_sim(p_noise = 0, **kwargs):
     P = np.array([[[1 - p_noise, p_noise], [1 - p_noise, p_noise]], [[p_noise, 1 - p_noise], [p_noise, 1 - p_noise]]])
@@ -11,8 +14,8 @@ def generate_investment_sim(p_noise = 0, **kwargs):
     R1_std = kwargs.get("R1_std", math.sqrt(2))
     R1D = np.array([1, R_state_1])
     R1D_std = np.array([0, R1_std])
-    R = OneDVec2ThreeDVec(R1D,U=2)
-    R_std = OneDVec2ThreeDVec(R1D_std,U=2)
+    R = Utils.OneDVec2ThreeDVec(R1D,U=2)
+    R_std = Utils.OneDVec2ThreeDVec(R1D_std,U=2)
 
     sparse_flag = kwargs.get("sparse_flag", False)
     if sparse_flag:
@@ -21,15 +24,43 @@ def generate_investment_sim(p_noise = 0, **kwargs):
         mdp = MDP.MDP(P = P, R = R, R_std=R_std)
     return mdp
 
+
 def func1():
     mdp = generate_investment_sim()
     policy = Policies.generate_uniform_policy(mdp.X,mdp.U)
     print("the mdp:")
     print(mdp.show())
     print("the policy:")
-    print(show_2dMat(policy))
+    print(Utils.show_2dMat(policy))
     trajectory = mdp.simulate(x=0,policy=policy,num_samples=10)
     print(trajectory)
+
+
+def generate_1D_MDP(X, noise, random_state):
+    U = 2
+    P = np.zeros(shape=(U, X, X))
+    R = np.zeros(shape=(U, X, X))
+    R_std = np.zeros(shape=(U, X, X))
+
+    # states description s0 <-> s1 <-> ... <-> s_{n-1}
+    # action 0 - got right (to x+1), action 1 - go to left (to x-1)
+    # the initial state is s0
+    # the reward is in state s_{n-1}
+    # from x-1 state we can return to each state besides x-1
+
+    for x in range(X):
+        if x == X-1:
+            P[0, x, 0:(X-1)] = 1 / (X - 1)
+            P[1, x, 0:(X-1)] = 1 / (X - 1)
+            R[:, x, :] = 1
+        else:
+            P[:, x, x] += noise
+
+            P[0, x, min(X - 1, x + 1)] += 1 - noise
+            P[1, x, max(0, x - 1)] += 1 - noise
+    mdp = MDP.MDP(P = P, R = R, R_std=R_std)
+    return mdp
+
 
 def generate_random_MDP(X, U, B, std = 0, random_state = np.random.RandomState(0), R_mode=DEPEND_ONLY_ON_START_STATE):
     '''
@@ -45,10 +76,10 @@ def generate_random_MDP(X, U, B, std = 0, random_state = np.random.RandomState(0
 
     for x in range(X):
         for u in range(U):
-            P[u, x], R[u,x] = get_random_sparse_vector(X, B, random_state)
-        if R_mode==DEPEND_ONLY_ON_START_STATE:
+            P[u, x], R[u,x] = Utils.get_random_sparse_vector(X, B, random_state)
+        if R_mode == DEPEND_ONLY_ON_START_STATE:
             R[0, x, :] = R[0,x,0]
-            R[u,x,:] = R[0,x,0]
+            R[u, x, :] = R[0,x,0]
 
     mdp = MDP.MDP(P = P, R = R, R_std=R_std)
     return mdp

@@ -1,7 +1,8 @@
 import numpy as np
 
+
 class SimpleQAgent:
-    def __init__(self, X, U, gamma, random=np.random.RandomState(0), **kwargs):
+    def __init__(self, X, U, gamma, random, **kwargs):
         self.X = X
         self.U = U
         self.gamma = gamma
@@ -11,10 +12,11 @@ class SimpleQAgent:
         self.epsilon_start = kwargs.get("epsilon_start", 0.9)
         self.epsilon_end = kwargs.get("epsilon_end", 0)
         self.epsilon_factor = kwargs.get("epsilon_factor", 0.999)
+        self.epsilon = 0
 
         self.step_start = kwargs.get("step_start", 1e-1)
-        self.step_end = kwargs.get("step_end", 0)
-        self.step_factor = kwargs.get("step_factor", 1e-1)
+        self.step_end = kwargs.get("step_end", 1e-3)
+        self.step_factor = kwargs.get("step_factor", 0.9999)
 
         self.steps_counter = 0
 
@@ -22,7 +24,7 @@ class SimpleQAgent:
         self.accuracy_maximal_Q = kwargs.get("accuracy_maximal_Q", 0)
 
         # optimistic Q-learning
-        self.Q = np.ones(shape=(X,U))/(1-gamma)
+        self.Q = np.ones(shape=(X, U))/(1-gamma)
         self.update_epsilon()
         self.update_learning_rate()
 
@@ -34,7 +36,7 @@ class SimpleQAgent:
 
     def select_action(self, x):
         # Doing the epsilon greedy step
-        if self.random.rand()<self.epsilon:
+        if self.random.rand() < self.epsilon:
             return self.random.randint(0,self.U)
         # otherwise, take the maximum action
         action = self.get_maximal_action(x)
@@ -66,7 +68,4 @@ class SimpleQAgent:
 
     def get_Q(self):
         return self.Q
-
-
-
 

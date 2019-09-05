@@ -1,6 +1,7 @@
 import numpy as np
-import math
+import copy
 import Utils
+
 
 class MDP:
     '''
@@ -12,7 +13,7 @@ class MDP:
         self.R_std = R_std
         self.U = self.P.shape[0]
         self.X = self.P.shape[1]
-        self.rand = random
+        self.random = random
         self.cur_state = None
         self.basis = basis
         if self.basis is not None:
@@ -22,7 +23,7 @@ class MDP:
         self.init_method = init_method
 
     def reset(self):
-        self.cur_state = self.rand.randint(self.X)
+        self.cur_state = self.random.randint(self.X)
         return self.get_cur_state()
 
     def simulate(self, x, policy, num_samples):
@@ -33,15 +34,15 @@ class MDP:
         mu = policy[x]
         trajectory = []
         for n in range(num_samples):
-            u = self.rand.choice(range(self.U), p=policy[x])
-            y = self.rand.choice(range(self.X), p=self.P[u,x])
-            r = self.R[u, x, y] + self.rand.normal()*self.R_std[u,x,y]
+            u = self.random.choice(range(self.U), p=policy[x])
+            y = self.random.choice(range(self.X), p=self.P[u,x])
+            r = self.R[u, x, y] + self.random.normal()*self.R_std[u,x,y]
             trajectory.append([x,u,r,y])
             x = y
         return trajectory
 
     def init(self):
-        state = self.rand.choice(self.X)
+        state = self.random.choice(self.X)
         return state
 
     def get_state(self):
@@ -50,8 +51,8 @@ class MDP:
     def step(self,u):
         x = self.cur_state
         vec = np.squeeze(self.P[u, x])
-        y = self.rand.choice(range(self.X), p=vec)
-        r = self.R[u, x, y] + self.rand.normal()*self.R_std[u,x,y]
+        y = self.random.choice(range(self.X), p=vec)
+        r = self.R[u, x, y] + self.random.normal()*self.R_std[u,x,y]
         self.cur_state = y
         if self.basis is None:
             # Gym format
@@ -106,9 +107,31 @@ class MDP:
         else:
             return self.basis[self.cur_state]
 
+    def get_copy(self):
+        mdp_new = MDP(copy.deepcopy(self.P),
+                      copy.deepcopy(self.R),
+                      copy.deepcopy(self.R_std),
+                      random=self.random,
+                      basis=copy.deepcopy(self.basis),
+                      info=copy.deepcopy(self.info),
+                      init_method=copy.deepcopy(self.init_method))
+        return mdp_new
+
+    def pertubate_P(self, noise):
+        mdp_new = self.get_copy()
+        mdp_new.P += noise*self.random.uniform(low=0, high=1.0, size=self.P.shape)
+        for u in range(self.P.shape[0]):
+            for x in range(self.P.shape[1]):
+                if np.sum(mdp_new.P[u, x]) > 0:
+                    mdp_new.P[u, x] = mdp_new.P[u, x] / np.sum(mdp_new.P[u, x])
+        return mdp_new
+
+
+
 def get_R_M2(P, R, R_std, gamma, J):
     R_M2 = R*R + R_std * R_std + 2* gamma * R * (np.dot(P,J))
     return R_M2
+
 
 def get_R_V(P, R, R_std, gamma, J, moment_func):
     #Jy =  np.dot(P,J)
@@ -116,13 +139,16 @@ def get_R_V(P, R, R_std, gamma, J, moment_func):
     R_V = np.dot(P,moment_func(R + np.dot(P,J))) - moment_func(J)
     return R_V
 
+
 def get_R_as_V_minus(P, R, gamma, J, moment_func = lambda x:x*x):
     MT1 = np.dot(P, moment_func(J))
     MT2 = moment_func(np.dot(P,J))
     return moment_func(gamma) * (MT1-MT2)
 
+
 def get_R_as_V_def(P, R, gamma, J, moment_func = lambda x:x*x):
     return moment_func(gamma) * np.dot(P, moment_func(J - np.dot(P, J)))
+
 
 def get_R_as_V_detailed(P, R, gamma, J, moment_func = lambda x:x*x):
     T1 = np.dot(P, moment_func(J))
@@ -131,6 +157,9 @@ def get_R_as_V_detailed(P, R, gamma, J, moment_func = lambda x:x*x):
     T3b = np.dot(P, J)*np.dot(P, J)
     return moment_func(gamma) * np.dot(P, moment_func(J - np.dot(P, J)))
 
+
 def compute_L1_R(P, R, gamma, J):
     PJ =np.dot(P,J)
     return abs(PJ) + np.sign(PJ) * (J-PJ)
+
+

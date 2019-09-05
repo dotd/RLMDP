@@ -1,8 +1,9 @@
+import numpy as np
+
 import MDP
 import MDPSolver
 import SpecificMDPs
 import Policies
-import numpy as np
 import time
 from Filters.OnlineUtils import ComputeBasicStats
 import Utils

@@ -17,11 +17,12 @@ class BasicSampler():
         if self.counter % self.rate==0:
             self.deque.append(self.Transition(*args))
 
-    def get(self):
+    def get(self, debug=False):
         transitions = list(self.deque)
         mat = list(zip(*transitions))
         mat = [list(x) for x in mat]
-        print(mat)
+        if debug:
+            print(mat)
         return self.Transition(*mat)
 
 
