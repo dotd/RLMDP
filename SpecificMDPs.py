@@ -62,7 +62,7 @@ def generate_1D_MDP(X, noise, random_state):
     return mdp
 
 
-def generate_random_MDP(X, U, B, std = 0, random_state = np.random.RandomState(0), R_mode=DEPEND_ONLY_ON_START_STATE):
+def generate_random_MDP_params(X, U, B, std = 0, random_state = np.random.RandomState(0), R_mode=DEPEND_ONLY_ON_START_STATE):
     '''
     :param X: state size
     :param U: actions size
@@ -80,8 +80,12 @@ def generate_random_MDP(X, U, B, std = 0, random_state = np.random.RandomState(0
         if R_mode == DEPEND_ONLY_ON_START_STATE:
             R[0, x, :] = R[0,x,0]
             R[u, x, :] = R[0,x,0]
+    return P, R, R_std
 
-    mdp = MDP.MDP(P = P, R = R, R_std=R_std)
+
+def generate_random_MDP(X, U, B, std = 0, random_state = np.random.RandomState(0), R_mode=DEPEND_ONLY_ON_START_STATE):
+    P, R, R_std = generate_random_MDP_params(X, U, B, std=0, random_state=np.random.RandomState(0), R_mode=DEPEND_ONLY_ON_START_STATE)
+    mdp = MDP.MDP(P=P, R=R, R_std=R_std)
     return mdp
 
 def check_generate_random_MDP():
