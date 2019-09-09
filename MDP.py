@@ -119,7 +119,9 @@ class MDP:
 
     def pertubate_P(self, noise):
         mdp_new = self.get_copy()
-        mdp_new.P += noise*self.random.uniform(low=0, high=1.0, size=self.P.shape)
+        mdp_new.P += noise*(self.random.uniform(low=0, high=1.0, size=self.P.shape) - 0.5)
+        mdp_new.P[self.P==0] = 0
+        mdp_new.P[mdp_new.P <= 0] = 0
         for u in range(self.P.shape[0]):
             for x in range(self.P.shape[1]):
                 if np.sum(mdp_new.P[u, x]) > 0:

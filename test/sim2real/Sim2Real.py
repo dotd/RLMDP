@@ -1,5 +1,19 @@
 from MDP import MDP
 import SpecificMDPs
+from QAgents import SimpleQAgent
+from Utils import ReplayBuffer
+
+class AgentSim2Real(SimpleQAgent):
+
+    def __init__(self, X, U, gamma, random, **kwargs):
+        """
+        U[0] is the num of MDPs
+        U[1] the action space of each MDP
+        """
+        SimpleQAgent.__init__(self, X, U, gamma, random, **kwargs)
+        er_capacity = kwargs.get("er_capacity", 100)
+        self.er = ReplayBuffer(er_capacity, random)
+
 
 class MDPSim2Real:
     def __init__(self, P, R, R_std, random, noise=0.1, num_mdps=2):
@@ -20,11 +34,18 @@ class MDPSim2Real:
         else:
             self.mdps[idx].reset()
 
-    def step(self, idx, u):
-        return self.mdps[idx].step(u)
+    def step(self, u):
+        return self.mdps[u[0]].step(u[1])
+
+    def show(self):
+        lines = []
+        for idx, mdp in enumerate(self.mdps):
+            lines.append("MDP no. {}".format(idx))
+            lines += mdp.show()
 
 
 def generate_random_Sim2Real(X, U, B, std, random_state, noise):
     P, R, R_std = SpecificMDPs.generate_random_MDP_params(X, U, B, std, random_state)
     mdp = MDPSim2Real(P, R, R_std, random_state, noise=noise, num_mdps=2)
-    return MDP
+    return mdp
+

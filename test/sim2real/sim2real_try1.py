@@ -22,8 +22,7 @@ print(mdp.show())
 mu_PI, J_collector, Q_PI, iter_counter = MDPSolver.PI(mdp, gamma, mu=None, max_iters=10)
 print("iter_counter={}".format(iter_counter))
 print("mu=\n{}".format(mu_PI))
-print("J_collector=\n{}".format(J_collector))
-g.show_J_collector(J_collector)
+print("J_collector=\n{}".format(J_collector))  # g.show_J_collector(J_collector)
 
 q_agent = q.SimpleQAgent(X, U, gamma, epsil=0.1, alpha=1e-1, random=random_state)
 
@@ -36,15 +35,13 @@ num_rounds = 1000
 for p in range(num_rounds):
     if p % (num_rounds//10) == 0 or p==num_rounds-1:
         print("p={}".format(p))
-    delQ = np.linalg.norm(q_agent.Q - Q_PI,"fro")
-    del_mu = np.linalg.norm(q_agent.get_policy() - mu_PI,"fro")
-    bs.add(q_agent.Q, q_agent.epsilon, q_agent.lr, delQ, del_mu)
-    env.play_round(300)
+    delQ = np.linalg.norm(q_agent.Q - Q_PI, "fro")
+    del_mu = np.linalg.norm(q_agent.get_policy() - mu_PI, "fro")
+    bs.add(q_agent.Q, q_agent.epsilon.epsilon, q_agent.lr.lr, delQ, del_mu)
+    env.play_round(400)
 
 print("mu_PI=\n{}".format(mu_PI))
 print("q_agent.get_policy()=\n{}".format(q_agent.get_policy()))
-
-
 
 plt.figure(2)
 plt.subplot(411)
